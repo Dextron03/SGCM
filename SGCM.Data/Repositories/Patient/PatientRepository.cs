@@ -33,5 +33,17 @@ namespace SGCM.Data.Repositories
             }
             return result;
         }
+
+        public async Task<OperationResult> GetBySocialSecurityNumberAsync(string socialSecurityNumber)
+        {
+            if (string.IsNullOrWhiteSpace(socialSecurityNumber))
+                return new OperationResult { Success = false, Message = "El número de seguro social no puede estar vacío." };
+
+            var patient = await _entities.FirstOrDefaultAsync(p => p.SocialSecurityNumber == socialSecurityNumber);
+            if (patient == null)
+                return new OperationResult { Success = false, Message = "No existe un paciente con ese número de seguro social." };
+
+            return new OperationResult { Data = patient };
+        }
     }
 }

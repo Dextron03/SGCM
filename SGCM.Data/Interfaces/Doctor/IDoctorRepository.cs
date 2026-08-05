@@ -7,5 +7,6 @@ namespace SGCM.Data.Interfaces
     {
         Task<OperationResult> GetByAppUserId(string appUserId);
         Task<OperationResult> GetBySpecialty(string specialtyId);
+        Task<OperationResult> GetByMedicalLicenseAsync(string medicalLicense);
     }
 }

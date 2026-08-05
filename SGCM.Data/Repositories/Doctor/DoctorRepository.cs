@@ -50,5 +50,17 @@ namespace SGCM.Data.Repositories
             }
             return result;
         }
+
+        public async Task<OperationResult> GetByMedicalLicenseAsync(string medicalLicense)
+        {
+            if (string.IsNullOrWhiteSpace(medicalLicense))
+                return new OperationResult { Success = false, Message = "La licencia médica no puede estar vacía." };
+
+            var doctor = await _entities.FirstOrDefaultAsync(d => d.MedicalLicense == medicalLicense);
+            if (doctor == null)
+                return new OperationResult { Success = false, Message = "No existe un doctor con esa licencia." };
+
+            return new OperationResult { Data = doctor };
+        }
     }
 }

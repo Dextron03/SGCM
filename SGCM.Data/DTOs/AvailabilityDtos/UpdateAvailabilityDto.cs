@@ -1,4 +1,4 @@
-using SGCM.Data.Enums;
+using SGCM.Domain.Enums;
 
 namespace SGCM.Data.DTOs.AvailabilityDtos
 {

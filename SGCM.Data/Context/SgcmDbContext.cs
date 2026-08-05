@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using SGCM.Data.Entities;
+using SGCM.Domain.Entities;
 
 namespace SGCM.Data.Context
 {

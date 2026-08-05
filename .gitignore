@@ -14,6 +14,7 @@
 # BACKEND: C# / .NET (Visual Studio)
 # ==========================================
 .vs/
+TemplateEngineHost/
 *.user
 *.userosscache
 *.sln.docstates
@@ -57,3 +58,6 @@ pnpm-debug.log*
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Respaldos temporales de proyectos .NET
+*.Backup.tmp

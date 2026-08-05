@@ -3,7 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using SGCM.Data.Entities;
+using SGCM.Domain.Entities;
+using SGCM.Domain.Settings;
 using System.Text;
 using System.Threading.Tasks;
 

@@ -158,7 +158,7 @@ namespace SGCM.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.AppUser", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.AppUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -238,7 +238,7 @@ namespace SGCM.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Appointment", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Appointment", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -272,7 +272,7 @@ namespace SGCM.Data.Migrations
                     b.ToTable("Appointments", (string)null);
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Availability", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Availability", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -297,7 +297,7 @@ namespace SGCM.Data.Migrations
                     b.ToTable("Availabilities", (string)null);
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Doctor", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Doctor", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -325,7 +325,7 @@ namespace SGCM.Data.Migrations
                     b.ToTable("Doctors", (string)null);
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.MedicalRecord", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.MedicalRecord", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -372,7 +372,7 @@ namespace SGCM.Data.Migrations
                     b.ToTable("MedicalRecords", (string)null);
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Patient", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Patient", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -402,7 +402,7 @@ namespace SGCM.Data.Migrations
                     b.ToTable("Patients", (string)null);
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Specialty", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Specialty", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -433,7 +433,7 @@ namespace SGCM.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("SGCM.Data.Entities.AppUser", null)
+                    b.HasOne("SGCM.Domain.Entities.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -442,7 +442,7 @@ namespace SGCM.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("SGCM.Data.Entities.AppUser", null)
+                    b.HasOne("SGCM.Domain.Entities.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -457,7 +457,7 @@ namespace SGCM.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SGCM.Data.Entities.AppUser", null)
+                    b.HasOne("SGCM.Domain.Entities.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -466,22 +466,22 @@ namespace SGCM.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("SGCM.Data.Entities.AppUser", null)
+                    b.HasOne("SGCM.Domain.Entities.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Appointment", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Appointment", b =>
                 {
-                    b.HasOne("SGCM.Data.Entities.Doctor", "Doctor")
+                    b.HasOne("SGCM.Domain.Entities.Doctor", "Doctor")
                         .WithMany("Appointments")
                         .HasForeignKey("DoctorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SGCM.Data.Entities.Patient", "Patient")
+                    b.HasOne("SGCM.Domain.Entities.Patient", "Patient")
                         .WithMany("Appointments")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -492,9 +492,9 @@ namespace SGCM.Data.Migrations
                     b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Availability", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Availability", b =>
                 {
-                    b.HasOne("SGCM.Data.Entities.Doctor", "Doctor")
+                    b.HasOne("SGCM.Domain.Entities.Doctor", "Doctor")
                         .WithMany("Availabilities")
                         .HasForeignKey("DoctorId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -503,15 +503,15 @@ namespace SGCM.Data.Migrations
                     b.Navigation("Doctor");
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Doctor", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Doctor", b =>
                 {
-                    b.HasOne("SGCM.Data.Entities.AppUser", "AppUser")
+                    b.HasOne("SGCM.Domain.Entities.AppUser", "AppUser")
                         .WithOne()
-                        .HasForeignKey("SGCM.Data.Entities.Doctor", "AppUserId")
+                        .HasForeignKey("SGCM.Domain.Entities.Doctor", "AppUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SGCM.Data.Entities.Specialty", "Specialty")
+                    b.HasOne("SGCM.Domain.Entities.Specialty", "Specialty")
                         .WithMany("Doctors")
                         .HasForeignKey("SpecialtyId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -522,21 +522,21 @@ namespace SGCM.Data.Migrations
                     b.Navigation("Specialty");
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.MedicalRecord", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.MedicalRecord", b =>
                 {
-                    b.HasOne("SGCM.Data.Entities.Appointment", "Appointment")
+                    b.HasOne("SGCM.Domain.Entities.Appointment", "Appointment")
                         .WithOne("MedicalRecord")
-                        .HasForeignKey("SGCM.Data.Entities.MedicalRecord", "AppointmentId")
+                        .HasForeignKey("SGCM.Domain.Entities.MedicalRecord", "AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SGCM.Data.Entities.Doctor", "Doctor")
+                    b.HasOne("SGCM.Domain.Entities.Doctor", "Doctor")
                         .WithMany()
                         .HasForeignKey("DoctorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SGCM.Data.Entities.Patient", "Patient")
+                    b.HasOne("SGCM.Domain.Entities.Patient", "Patient")
                         .WithMany("MedicalRecords")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -549,37 +549,37 @@ namespace SGCM.Data.Migrations
                     b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Patient", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Patient", b =>
                 {
-                    b.HasOne("SGCM.Data.Entities.AppUser", "AppUser")
+                    b.HasOne("SGCM.Domain.Entities.AppUser", "AppUser")
                         .WithOne()
-                        .HasForeignKey("SGCM.Data.Entities.Patient", "AppUserId")
+                        .HasForeignKey("SGCM.Domain.Entities.Patient", "AppUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("AppUser");
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Appointment", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Appointment", b =>
                 {
                     b.Navigation("MedicalRecord");
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Doctor", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Doctor", b =>
                 {
                     b.Navigation("Appointments");
 
                     b.Navigation("Availabilities");
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Patient", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Patient", b =>
                 {
                     b.Navigation("Appointments");
 
                     b.Navigation("MedicalRecords");
                 });
 
-            modelBuilder.Entity("SGCM.Data.Entities.Specialty", b =>
+            modelBuilder.Entity("SGCM.Domain.Entities.Specialty", b =>
                 {
                     b.Navigation("Doctors");
                 });

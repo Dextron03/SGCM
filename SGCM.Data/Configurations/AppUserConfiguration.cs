@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SGCM.Data.Entities;
+using SGCM.Domain.Entities;
 
 namespace SGCM.Data.Configurations
 {

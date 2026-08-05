@@ -1,6 +1,7 @@
 
 using SGCM.Data.Context;
 using SGCM.Data;
+using SGCM.Application;
 
 namespace SGCM
 {
@@ -18,6 +19,7 @@ namespace SGCM
 
             builder.Services.AddIdentityService(builder.Configuration);
             builder.Services.AddDataLayerIoc(builder.Configuration);
+            builder.Services.AddApplicationIoc();
 
             var app = builder.Build();
 

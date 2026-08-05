@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SGCM.Domain\SGCM.Domain.csproj" />
+    <ProjectReference Include="..\SGCM.Data\SGCM.Data.csproj" />
   </ItemGroup>
 
 </Project>

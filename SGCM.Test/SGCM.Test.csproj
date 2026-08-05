@@ -25,6 +25,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\SGCM.Data\SGCM.Data.csproj" />
 		<ProjectReference Include="..\SGCM\SGCM.Web.csproj" />
+		<ProjectReference Include="..\SGCM.Application\SGCM.Application.csproj" />
 	</ItemGroup>
 
 </Project>

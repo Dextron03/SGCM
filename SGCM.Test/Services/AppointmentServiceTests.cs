@@ -16,7 +16,18 @@ namespace SGCM.Test.Services
             var appointmentRepo = new Mock<IAppointmentRepository>();
             var doctorRepo = new Mock<IDoctorRepository>();
             var patientRepo = new Mock<IPatientRepository>();
-            var service = new AppointmentService(appointmentRepo.Object, doctorRepo.Object, patientRepo.Object);
+            var availabilityRepo = new Mock<IAvailabilityRepository>();
+            availabilityRepo.Setup(r => r.GetByDoctor(It.IsAny<string>())).ReturnsAsync(new OperationResult
+            {
+                Data = Enumerable.Range(1, 7).Select(day => new Availability
+                {
+                    Day = (AvailableDay)day,
+                    StartTime = TimeSpan.Zero,
+                    EndTime = TimeSpan.FromHours(24)
+                }).ToList()
+            });
+            appointmentRepo.Setup(r => r.GetByDoctor(It.IsAny<string>())).ReturnsAsync(new OperationResult { Data = new List<Appointment>() });
+            var service = new AppointmentService(appointmentRepo.Object, doctorRepo.Object, patientRepo.Object, availabilityRepo.Object);
             return (appointmentRepo, doctorRepo, patientRepo, service);
         }
 
@@ -220,6 +231,7 @@ namespace SGCM.Test.Services
             // Arrange
             var (appointmentRepo, _, _, service) = CreateService();
             var appointment = new Appointment { Id = "app-1", PatientId = "pat-1", DoctorId = "doc-1", Reason = "Chequeo", Status = AppointmentStatus.Confirmed };
+            appointmentRepo.Setup(r => r.GetById("app-1")).ReturnsAsync(new OperationResult { Data = new Appointment { Id = "app-1", Status = AppointmentStatus.Pending } });
             appointmentRepo.Setup(r => r.ChangeStatus("app-1", AppointmentStatus.Confirmed)).ReturnsAsync(new OperationResult { Data = appointment });
             var dto = new ChangeAppointmentStatusDto { Id = "app-1", Status = AppointmentStatus.Confirmed };
 

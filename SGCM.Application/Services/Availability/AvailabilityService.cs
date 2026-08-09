@@ -42,10 +42,17 @@ namespace SGCM.Application.Services
                 return new OperationResult { Success = false, Message = "El doctor no puede estar vacío." };
             if (dto.StartTime >= dto.EndTime)
                 return new OperationResult { Success = false, Message = "La hora de inicio debe ser anterior a la hora de fin." };
+            if (!Enum.IsDefined(dto.Day))
+                return new OperationResult { Success = false, Message = "El día de disponibilidad no es válido." };
 
             var doctorResult = await _doctorRepository.GetById(dto.DoctorId);
             if (!doctorResult.Success)
                 return new OperationResult { Success = false, Message = "El doctor especificado no existe." };
+
+            var existingAvailabilities = await _availabilityRepository.GetByDoctor(dto.DoctorId);
+            if (!existingAvailabilities.Success) return existingAvailabilities;
+            if (HasOverlappingAvailability((List<Availability>)existingAvailabilities.Data!, dto.Day, dto.StartTime, dto.EndTime))
+                return new OperationResult { Success = false, Message = "El horario se superpone con otro bloque de disponibilidad." };
 
             var availability = new Availability
             {
@@ -67,10 +74,17 @@ namespace SGCM.Application.Services
                 return new OperationResult { Success = false, Message = "El identificador de la disponibilidad no puede estar vacío." };
             if (dto.StartTime >= dto.EndTime)
                 return new OperationResult { Success = false, Message = "La hora de inicio debe ser anterior a la hora de fin." };
+            if (!Enum.IsDefined(dto.Day))
+                return new OperationResult { Success = false, Message = "El día de disponibilidad no es válido." };
 
             var existingResult = await _availabilityRepository.GetById(dto.Id);
             if (!existingResult.Success) return existingResult;
             var availability = (Availability)existingResult.Data!;
+
+            var doctorAvailabilities = await _availabilityRepository.GetByDoctor(availability.DoctorId);
+            if (!doctorAvailabilities.Success) return doctorAvailabilities;
+            if (HasOverlappingAvailability((List<Availability>)doctorAvailabilities.Data!, dto.Day, dto.StartTime, dto.EndTime, availability.Id))
+                return new OperationResult { Success = false, Message = "El horario se superpone con otro bloque de disponibilidad." };
 
             availability.Day = dto.Day;
             availability.StartTime = dto.StartTime;
@@ -106,5 +120,8 @@ namespace SGCM.Application.Services
             StartTime = availability.StartTime,
             EndTime = availability.EndTime
         };
+
+        private static bool HasOverlappingAvailability(IEnumerable<Availability> availabilities, Domain.Enums.AvailableDay day, TimeSpan startTime, TimeSpan endTime, string? excludedId = null) =>
+            availabilities.Any(a => a.Id != excludedId && a.Day == day && startTime < a.EndTime && endTime > a.StartTime);
     }
 }

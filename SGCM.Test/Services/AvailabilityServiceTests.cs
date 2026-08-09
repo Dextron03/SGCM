@@ -15,6 +15,7 @@ namespace SGCM.Test.Services
         {
             var availabilityRepo = new Mock<IAvailabilityRepository>();
             var doctorRepo = new Mock<IDoctorRepository>();
+            availabilityRepo.Setup(r => r.GetByDoctor(It.IsAny<string>())).ReturnsAsync(new OperationResult { Data = new List<Availability>() });
             var service = new AvailabilityService(availabilityRepo.Object, doctorRepo.Object);
             return (availabilityRepo, doctorRepo, service);
         }

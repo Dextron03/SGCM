@@ -12,15 +12,18 @@ namespace SGCM.Application.Services
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IDoctorRepository _doctorRepository;
         private readonly IPatientRepository _patientRepository;
+        private readonly IAvailabilityRepository _availabilityRepository;
 
         public AppointmentService(
             IAppointmentRepository appointmentRepository,
             IDoctorRepository doctorRepository,
-            IPatientRepository patientRepository)
+            IPatientRepository patientRepository,
+            IAvailabilityRepository availabilityRepository)
         {
             _appointmentRepository = appointmentRepository;
             _doctorRepository = doctorRepository;
             _patientRepository = patientRepository;
+            _availabilityRepository = availabilityRepository;
         }
 
         public async Task<OperationResult> GetAll()
@@ -61,6 +64,9 @@ namespace SGCM.Application.Services
             if (!doctorResult.Success)
                 return new OperationResult { Success = false, Message = "El doctor especificado no existe." };
 
+            var scheduleValidation = await ValidateSchedule(dto.DoctorId, dto.DateTime);
+            if (scheduleValidation is not null) return scheduleValidation;
+
             var appointment = new Appointment
             {
                 PatientId = dto.PatientId,
@@ -88,6 +94,9 @@ namespace SGCM.Application.Services
             var existingResult = await _appointmentRepository.GetById(dto.Id);
             if (!existingResult.Success) return existingResult;
             var appointment = (Appointment)existingResult.Data!;
+
+            var scheduleValidation = await ValidateSchedule(appointment.DoctorId, dto.DateTime, appointment.Id);
+            if (scheduleValidation is not null) return scheduleValidation;
 
             appointment.DateTime = dto.DateTime;
             appointment.Reason = dto.Reason;
@@ -137,6 +146,15 @@ namespace SGCM.Application.Services
             if (dto is null || string.IsNullOrWhiteSpace(dto.Id))
                 return new OperationResult { Success = false, Message = "El identificador de la cita no puede estar vacío." };
 
+            if (!Enum.IsDefined(dto.Status))
+                return new OperationResult { Success = false, Message = "El estado de la cita no es válido." };
+
+            var appointmentResult = await _appointmentRepository.GetById(dto.Id);
+            if (!appointmentResult.Success) return appointmentResult;
+            var appointment = (Appointment)appointmentResult.Data!;
+            if (!CanChangeStatus(appointment.Status, dto.Status))
+                return new OperationResult { Success = false, Message = "No se permite cambiar la cita a ese estado." };
+
             var result = await _appointmentRepository.ChangeStatus(dto.Id, dto.Status);
             if (!result.Success) return result;
             result.Data = ToDto((Appointment)result.Data!);
@@ -152,5 +170,37 @@ namespace SGCM.Application.Services
             PatientId = appointment.PatientId,
             DoctorId = appointment.DoctorId
         };
+
+        private static AvailableDay ToAvailableDay(DateTime dateTime) =>
+            (AvailableDay)(((int)dateTime.DayOfWeek + 6) % 7 + 1);
+
+        private static bool CanChangeStatus(AppointmentStatus current, AppointmentStatus next) =>
+            current switch
+            {
+                AppointmentStatus.Pending => next is AppointmentStatus.Confirmed or AppointmentStatus.Canceled,
+                AppointmentStatus.Confirmed => next is AppointmentStatus.Completed or AppointmentStatus.Canceled,
+                _ => false
+            };
+
+        private async Task<OperationResult?> ValidateSchedule(string doctorId, DateTime dateTime, string? excludedAppointmentId = null)
+        {
+            var availabilityResult = await _availabilityRepository.GetByDoctor(doctorId);
+            if (!availabilityResult.Success) return availabilityResult;
+
+            var appointmentDay = ToAvailableDay(dateTime);
+            var appointmentTime = dateTime.TimeOfDay;
+            var isWithinAvailability = ((List<Availability>)availabilityResult.Data!)
+                .Any(a => a.Day == appointmentDay && appointmentTime >= a.StartTime && appointmentTime < a.EndTime);
+            if (!isWithinAvailability)
+                return new OperationResult { Success = false, Message = "El doctor no está disponible en la fecha y hora seleccionadas." };
+
+            var doctorAppointmentsResult = await _appointmentRepository.GetByDoctor(doctorId);
+            if (!doctorAppointmentsResult.Success) return doctorAppointmentsResult;
+            var isAlreadyBooked = ((List<Appointment>)doctorAppointmentsResult.Data!)
+                .Any(a => a.Id != excludedAppointmentId && a.DateTime == dateTime && a.Status != AppointmentStatus.Canceled);
+            return isAlreadyBooked
+                ? new OperationResult { Success = false, Message = "El horario seleccionado ya está ocupado." }
+                : null;
+        }
     }
 }

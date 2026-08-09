@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 
-const resolveFromRoot = (path) => fileURLToPath(new URL(path, import.meta.url))
+const resolveFromRoot = (path) =>
+  fileURLToPath(new URL(path, import.meta.url))
 
 export default defineConfig({
   server: {
@@ -9,9 +10,11 @@ export default defineConfig({
       '/api': 'http://localhost:5236',
     },
   },
+
   build: {
     outDir: '../SGCM/wwwroot',
     emptyOutDir: true,
+
     rollupOptions: {
       input: {
         main: resolveFromRoot('./index.html'),
@@ -21,6 +24,8 @@ export default defineConfig({
         availability: resolveFromRoot('./disponibilidad.html'),
         scheduleAppointment: resolveFromRoot('./agendar-cita.html'),
         appointments: resolveFromRoot('./mis-citas.html'),
+        doctorProfile: resolveFromRoot('./perfil-doctor.html'),
+        specialtiesAdmin: resolveFromRoot('./admin-especialidades.html'),
       },
     },
   },

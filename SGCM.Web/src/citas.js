@@ -1,17 +1,45 @@
+import { serializeLocalDateTime } from './appointment-utils.js'
+
 const appointmentForm = document.getElementById('appointment-form')
 const searchForm = document.getElementById('search-form')
 const appointmentsForm = document.getElementById('appointments-form')
 const errorEl = document.getElementById('error')
 const messageEl = document.getElementById('message')
 
-function show(element, message) {
-  element.textContent = message
+let feedbackTimeoutId = null
+
+function clearFeedbackTimer() {
+  if (feedbackTimeoutId) {
+    clearTimeout(feedbackTimeoutId)
+    feedbackTimeoutId = null
+  }
+}
+
+function show(element, message, html = false, autoHide = true) {
+  clearFeedbackTimer()
+  if (html) {
+    element.innerHTML = message
+  } else {
+    element.textContent = message
+  }
   element.hidden = false
+
+  if (autoHide) {
+    feedbackTimeoutId = window.setTimeout(() => {
+      element.hidden = true
+      element.textContent = ''
+      element.innerHTML = ''
+      feedbackTimeoutId = null
+    }, 4000)
+  }
 }
 
 function hideMessages() {
+  clearFeedbackTimer()
   errorEl.hidden = true
   messageEl.hidden = true
+  messageEl.textContent = ''
+  messageEl.innerHTML = ''
 }
 
 async function api(path, options = {}) {
@@ -179,14 +207,24 @@ if (searchForm) {
         body: JSON.stringify({
           patientId: document.getElementById('patient-id').value.trim(),
           doctorId: document.getElementById('doctor-id').value.trim(),
-          dateTime: selectedDateTime.toISOString(),
+          dateTime: serializeLocalDateTime(selectedDateTime),
           reason: document.getElementById('reason').value.trim(),
         }),
       })
-      show(messageEl, 'Cita agendada correctamente.')
       appointmentForm.reset()
+      searchForm.reset()
       appointmentForm.hidden = true
-      searchForm.requestSubmit()
+      document.getElementById('selected-slot').textContent = ''
+      const slots = document.getElementById('slots')
+      slots.replaceChildren()
+      slots.hidden = true
+      selectedDateTime = null
+      show(
+        messageEl,
+        'La cita se registró correctamente. Puedes consultar y verificar sus detalles desde <a class="success-link" href="/mis-citas.html">Seguimiento de Citas</a>.',
+        true,
+        false
+      )
     } catch (error) {
       show(errorEl, error.message)
     }

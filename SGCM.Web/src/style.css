@@ -161,6 +161,14 @@ button:active { transform: translateY(1px); }
 }
 .error { color: var(--error-text); background: var(--error-bg); border: 1px solid #fecdd3; }
 .success { color: var(--success-text); background: var(--success-bg); border: 1px solid #bbf7d0; }
+.success-link {
+    display: inline-block;
+    margin-top: 6px;
+    color: var(--primary);
+    font-weight: 700;
+    text-decoration: underline;
+}
+.success-link:hover { color: var(--primary-dark); }
 
 .results-section[hidden], form[hidden] { display: none; }
 .empty-state { color: var(--muted); font-size: 0.93rem; }

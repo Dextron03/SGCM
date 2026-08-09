@@ -5,14 +5,40 @@ const list = document.getElementById('availability-list')
 const errorEl = document.getElementById('error')
 const messageEl = document.getElementById('message')
 
-function show(element, message) {
-  element.textContent = message
+let feedbackTimeoutId = null
+
+function clearFeedbackTimer() {
+  if (feedbackTimeoutId) {
+    clearTimeout(feedbackTimeoutId)
+    feedbackTimeoutId = null
+  }
+}
+
+function show(element, message, html = false, autoHide = true) {
+  clearFeedbackTimer()
+  if (html) {
+    element.innerHTML = message
+  } else {
+    element.textContent = message
+  }
   element.hidden = false
+
+  if (autoHide) {
+    feedbackTimeoutId = window.setTimeout(() => {
+      element.hidden = true
+      element.textContent = ''
+      element.innerHTML = ''
+      feedbackTimeoutId = null
+    }, 4000)
+  }
 }
 
 function hideMessages() {
+  clearFeedbackTimer()
   errorEl.hidden = true
   messageEl.hidden = true
+  messageEl.textContent = ''
+  messageEl.innerHTML = ''
 }
 
 function formatTime(value) {
@@ -110,9 +136,8 @@ form.addEventListener('submit', async (event) => {
 
   try {
     await request('', { method: 'POST', body: JSON.stringify(dto) })
-    show(messageEl, 'Horario guardado correctamente.')
-    form.startTime.value = ''
-    form.endTime.value = ''
+    form.reset()
+    show(messageEl, 'La disponibilidad se registró correctamente y ya está lista para su uso en la agenda.', false)
     await loadAvailability()
   } catch (error) {
     show(errorEl, error.message)

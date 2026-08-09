@@ -30,8 +30,6 @@ namespace SGCM
                 app.ApplyMigrations();
             }
 
-            app.SeedRoles();
-
             app.UseHttpsRedirection();
 
             app.UseDefaultFiles();

@@ -114,6 +114,25 @@ namespace SGCM.Test.Services
         }
 
         [Fact]
+        public async Task Create_WithLocalDateTime_ShouldAcceptMatchingAvailability()
+        {
+            // Arrange
+            var (appointmentRepo, doctorRepo, patientRepo, service) = CreateService();
+            patientRepo.Setup(r => r.GetById("pat-1")).ReturnsAsync(new OperationResult { Data = new Patient { Id = "pat-1" } });
+            doctorRepo.Setup(r => r.GetById("doc-1")).ReturnsAsync(new OperationResult { Data = new Doctor { Id = "doc-1" } });
+            appointmentRepo.Setup(r => r.Add(It.IsAny<Appointment>())).ReturnsAsync((Appointment a) => new OperationResult { Data = a });
+
+            var localDateTime = new DateTime(2026, 8, 10, 10, 0, 0, DateTimeKind.Unspecified);
+            var dto = new CreateAppointmentDto { PatientId = "pat-1", DoctorId = "doc-1", DateTime = localDateTime, Reason = "Chequeo" };
+
+            // Act
+            var result = await service.Create(dto);
+
+            // Assert
+            Assert.True(result.Success);
+        }
+
+        [Fact]
         public async Task Update_WhenNotFound_ShouldFail()
         {
             // Arrange

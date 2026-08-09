@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SGCM.Data.Context;
 using SGCM.Domain.Constants;
+using SGCM.Domain.Entities;
+using SGCM.Domain.Enums;
 
 namespace SGCM.Data
 {
@@ -36,27 +38,5 @@ namespace SGCM.Data
             }
         }
 
-        public static void SeedRoles(this IApplicationBuilder app)
-        {
-            using IServiceScope scope = app.ApplicationServices.CreateScope();
-
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-            try
-            {
-                foreach (var role in AppRoles.All)
-                {
-                    if (!roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
-                    {
-                        roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
-                    }
-                }
-                Console.WriteLine("Roles verificados/creados con exito.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al crear roles: {ex.Message}");
-            }
-        }
     }
 }

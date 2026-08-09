@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SGCM - Agendar cita</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main class="container"><section class="card">
+      <h1>Agendar una cita</h1>
+      <p id="error" class="error" hidden></p><p id="message" class="success" hidden></p>
+      <form id="search-form">
+        <label for="doctor-id">ID del doctor</label><input id="doctor-id" required />
+        <label for="date">Fecha</label><input id="date" type="date" required />
+        <button type="submit">Ver horarios libres</button>
+      </form>
+      <div id="slots" style="margin-top: 20px"></div>
+      <form id="appointment-form" hidden style="margin-top: 20px">
+        <h2>Confirmar cita</h2>
+        <p id="selected-slot"></p>
+        <label for="patient-id">ID del paciente</label><input id="patient-id" required />
+        <label for="reason">Motivo</label><input id="reason" maxlength="500" required />
+        <button type="submit">Agendar cita</button>
+      </form>
+    </section></main>
+    <script type="module" src="/src/citas.js"></script>
+  </body>
+</html>

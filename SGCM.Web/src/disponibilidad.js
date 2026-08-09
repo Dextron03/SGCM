@@ -1,0 +1,114 @@
+const days = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+const form = document.getElementById('availability-form')
+const doctorIdInput = document.getElementById('doctor-id')
+const list = document.getElementById('availability-list')
+const errorEl = document.getElementById('error')
+const messageEl = document.getElementById('message')
+
+function show(element, message) {
+  element.textContent = message
+  element.hidden = false
+}
+
+function hideMessages() {
+  errorEl.hidden = true
+  messageEl.hidden = true
+}
+
+function formatTime(value) {
+  return value.slice(0, 5)
+}
+
+async function request(path, options = {}) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 10000)
+
+  try {
+    const response = await fetch(`/api/availability${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options,
+      signal: controller.signal,
+    })
+    const body = await response.text()
+    let result
+
+    try {
+      result = body ? JSON.parse(body) : null
+    } catch {
+      throw new Error('El servidor devolvió una respuesta no válida.')
+    }
+
+    if (!response.ok || !result?.success) {
+      throw new Error(result?.message ?? 'No se pudo completar la operación.')
+    }
+    return result.data
+  } catch (error) {
+    if (error.name === 'AbortError') throw new Error('La solicitud tardó demasiado. Intenta nuevamente.')
+    if (error instanceof TypeError) throw new Error('No se pudo conectar con el servidor.')
+    throw error
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+async function loadAvailability() {
+  const doctorId = doctorIdInput.value.trim()
+  if (!doctorId) return
+
+  try {
+    const availabilities = await request(`/doctor/${encodeURIComponent(doctorId)}`)
+    list.replaceChildren()
+    if (!availabilities.length) {
+      list.textContent = 'Aún no hay horarios registrados.'
+      return
+    }
+
+    availabilities
+      .sort((a, b) => a.day - b.day || a.startTime.localeCompare(b.startTime))
+      .forEach((availability) => {
+        const row = document.createElement('p')
+        row.textContent = `${days[availability.day]}: ${formatTime(availability.startTime)}–${formatTime(availability.endTime)} `
+        const remove = document.createElement('button')
+        remove.type = 'button'
+        remove.textContent = 'Eliminar'
+        remove.style.cssText = 'width:auto;padding:6px 10px;margin-left:8px'
+        remove.addEventListener('click', async () => {
+          if (!confirm('¿Eliminar este bloque de horario?')) return
+          try {
+            await request(`/${availability.id}`, { method: 'DELETE' })
+            show(messageEl, 'Horario eliminado.')
+            await loadAvailability()
+          } catch (error) {
+            show(errorEl, error.message)
+          }
+        })
+        row.append(remove)
+        list.append(row)
+      })
+  } catch (error) {
+    show(errorEl, error.message)
+  }
+}
+
+doctorIdInput.addEventListener('change', loadAvailability)
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault()
+  hideMessages()
+  const dto = {
+    doctorId: doctorIdInput.value.trim(),
+    day: Number(form.day.value),
+    startTime: form.startTime.value,
+    endTime: form.endTime.value,
+  }
+
+  try {
+    await request('', { method: 'POST', body: JSON.stringify(dto) })
+    show(messageEl, 'Horario guardado correctamente.')
+    form.startTime.value = ''
+    form.endTime.value = ''
+    await loadAvailability()
+  } catch (error) {
+    show(errorEl, error.message)
+  }
+})

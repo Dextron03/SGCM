@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SGCM - Mi disponibilidad</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section class="card">
+        <h1>Mi horario semanal</h1>
+        <p>Registra los bloques en que atiendes. Puedes añadir más de un bloque para un mismo día.</p>
+        <p id="message" class="success" hidden></p>
+        <p id="error" class="error" hidden></p>
+        <form id="availability-form">
+          <label for="doctor-id">ID del doctor</label>
+          <input id="doctor-id" name="doctorId" required />
+          <label for="day">Día</label>
+          <select id="day" name="day" required>
+            <option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option>
+            <option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="7">Domingo</option>
+          </select>
+          <label for="start-time">Hora de inicio</label>
+          <input id="start-time" name="startTime" type="time" required />
+          <label for="end-time">Hora de fin</label>
+          <input id="end-time" name="endTime" type="time" required />
+          <button type="submit">Guardar horario</button>
+        </form>
+        <h2 style="margin-top: 24px">Horarios registrados</h2>
+        <div id="availability-list"></div>
+      </section>
+    </main>
+    <script type="module" src="/src/disponibilidad.js"></script>
+  </body>
+</html>

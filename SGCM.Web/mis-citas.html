@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SGCM - Mis citas</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main class="container"><section class="card">
+      <h1>Mis citas</h1>
+      <p id="error" class="error" hidden></p><p id="message" class="success" hidden></p>
+      <form id="appointments-form">
+        <label for="patient-id">ID del paciente</label><input id="patient-id" required />
+        <button type="submit">Consultar citas</button>
+      </form>
+      <div id="appointments-list" style="margin-top: 20px"></div>
+    </section></main>
+    <script type="module" src="/src/citas.js"></script>
+  </body>
+</html>

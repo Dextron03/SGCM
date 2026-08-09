@@ -1,0 +1,9 @@
+Como parte del proceso de implementación del proyecto, se deberá provisionar la infraestructura necesaria para habilitar el despliegue continuo en los entornos de Development (Dev), Quality Assurance (QA) y Production (Pro).
+
+Las tareas requeridas incluyen:
+
+Provisionar los Azure App Services correspondientes para los ambientes de Dev, QA y Pro, asegurando su correcta configuración de acuerdo con las necesidades del proyecto.
+
+Realizar la publicación del proyecto en el App Service del entorno Dev como primera fase del proceso de despliegue.
+
+Cada miembro del equipo deberá generar un informe en formato PDF, en el cual documentará la configuración del App Service asignado, detallando tanto los parámetros técnicos como el módulo funcional del sistema que desarrolló.

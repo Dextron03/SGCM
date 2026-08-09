@@ -1,4 +1,14 @@
 # ============================ #
+#     FRONTEND (SGCM.Web)      #
+# ============================ #
+FROM node:20-alpine AS frontend-build
+WORKDIR /app/SGCM.Web
+COPY ["SGCM.Web/package.json", "SGCM.Web/package-lock.json", "./"]
+RUN npm ci
+COPY ["SGCM.Web/", "./"]
+RUN npm run build
+
+# ============================ #
 #        CONTRUCCION           #
 # ============================ #
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
@@ -10,8 +20,9 @@ COPY ["SGCM.Data/SGCM.Data.csproj", "SGCM.Data/"]
 COPY ["SGCM.Test/SGCM.Test.csproj", "SGCM.Test/"]
 RUN dotnet restore "SGCM/SGCM.Web.csproj"
 
-# Copia el resto del codigo fuente 
+# Copia el resto del codigo fuente
 COPY . .
+COPY --from=frontend-build /app/SGCM/wwwroot ./SGCM/wwwroot
 WORKDIR "/app/SGCM/"
 RUN dotnet publish "SGCM.Web.csproj" -c Release -o /app/publish
 

@@ -45,6 +45,7 @@ node_modules/
 # Carpetas de compilación de producción
 dist/
 dist-ssr/
+SGCM/wwwroot/
 
 # Logs de gestores de paquetes
 npm-debug.log*

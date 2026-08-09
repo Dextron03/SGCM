@@ -14,6 +14,7 @@ namespace SGCM.Application
             services.AddScoped<IAvailabilityService, AvailabilityService>();
             services.AddScoped<IAppointmentService, AppointmentService>();
             services.AddScoped<IMedicalRecordService, MedicalRecordService>();
+            services.AddScoped<IAccountService, AccountService>();
         }
     }
 }

@@ -59,19 +59,25 @@ async function loadAvailability() {
     const availabilities = await request(`/doctor/${encodeURIComponent(doctorId)}`)
     list.replaceChildren()
     if (!availabilities.length) {
-      list.textContent = 'Aún no hay horarios registrados.'
+      const empty = document.createElement('p')
+      empty.className = 'empty-state'
+      empty.textContent = 'Aún no hay horarios registrados para este doctor.'
+      list.append(empty)
       return
     }
 
     availabilities
       .sort((a, b) => a.day - b.day || a.startTime.localeCompare(b.startTime))
       .forEach((availability) => {
-        const row = document.createElement('p')
-        row.textContent = `${days[availability.day]}: ${formatTime(availability.startTime)}–${formatTime(availability.endTime)} `
+        const row = document.createElement('div')
+        row.className = 'availability-item'
+        const detail = document.createElement('p')
+        detail.textContent = `${days[availability.day]} · ${formatTime(availability.startTime)}–${formatTime(availability.endTime)}`
+        row.append(detail)
         const remove = document.createElement('button')
         remove.type = 'button'
         remove.textContent = 'Eliminar'
-        remove.style.cssText = 'width:auto;padding:6px 10px;margin-left:8px'
+        remove.className = 'cancel-button'
         remove.addEventListener('click', async () => {
           if (!confirm('¿Eliminar este bloque de horario?')) return
           try {

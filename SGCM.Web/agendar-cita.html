@@ -7,21 +7,24 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <main class="container"><section class="card">
+    <main class="container"><section class="card card--wide">
+      <p class="eyebrow">Citas médicas</p>
       <h1>Agendar una cita</h1>
-      <p id="error" class="error" hidden></p><p id="message" class="success" hidden></p>
-      <form id="search-form">
-        <label for="doctor-id">ID del doctor</label><input id="doctor-id" required />
-        <label for="date">Fecha</label><input id="date" type="date" required />
+      <p class="lead">Primero consulta la agenda del médico y después elige el horario que más te convenga.</p>
+      <p id="error" class="error" role="alert" aria-live="assertive" hidden></p><p id="message" class="success" role="status" aria-live="polite" hidden></p>
+      <div class="info-box"><span aria-hidden="true">1</span><span><strong>Busca disponibilidad.</strong> Ingresa el identificador del médico y una fecha.</span></div>
+      <form id="search-form" class="form-section">
+        <div class="field"><label for="doctor-id">ID del doctor</label><input id="doctor-id" placeholder="Ej.: doctor-demo-001" required aria-describedby="doctor-help" /><p id="doctor-help" class="helper-text">Usa el identificador del perfil del médico.</p></div>
+        <div class="field"><label for="date">Fecha de la cita</label><input id="date" type="date" required /><p class="helper-text">Solo se muestran horarios disponibles para ese día.</p></div>
         <button type="submit">Ver horarios libres</button>
       </form>
-      <div id="slots" style="margin-top: 20px"></div>
-      <form id="appointment-form" hidden style="margin-top: 20px">
-        <h2>Confirmar cita</h2>
-        <p id="selected-slot"></p>
-        <label for="patient-id">ID del paciente</label><input id="patient-id" required />
-        <label for="reason">Motivo</label><input id="reason" maxlength="500" required />
-        <button type="submit">Agendar cita</button>
+      <section id="slots" class="results-section" aria-live="polite" aria-label="Horarios disponibles" hidden></section>
+      <form id="appointment-form" class="form-section" hidden>
+        <div class="section-heading"><p class="eyebrow">Paso 2</p><h2>Confirma tu cita</h2><p class="section-description">Completa tus datos para reservar el horario elegido.</p></div>
+        <p id="selected-slot" class="selected-slot"></p>
+        <div class="field"><label for="patient-id">ID del paciente</label><input id="patient-id" placeholder="Ej.: patient-demo-001" required /></div>
+        <div class="field"><label for="reason">Motivo de la consulta</label><input id="reason" placeholder="Ej.: Consulta general" maxlength="500" required /><p class="helper-text">Describe brevemente el motivo de la cita.</p></div>
+        <button type="submit">Confirmar y agendar cita</button>
       </form>
     </section></main>
     <script type="module" src="/src/citas.js"></script>

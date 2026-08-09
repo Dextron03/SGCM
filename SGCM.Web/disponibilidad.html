@@ -8,27 +8,24 @@
   </head>
   <body>
     <main class="container">
-      <section class="card">
+      <section class="card card--wide">
+        <p class="eyebrow">Configuración médica</p>
         <h1>Mi horario semanal</h1>
-        <p>Registra los bloques en que atiendes. Puedes añadir más de un bloque para un mismo día.</p>
-        <p id="message" class="success" hidden></p>
-        <p id="error" class="error" hidden></p>
-        <form id="availability-form">
-          <label for="doctor-id">ID del doctor</label>
-          <input id="doctor-id" name="doctorId" required />
-          <label for="day">Día</label>
-          <select id="day" name="day" required>
+        <p class="lead">Define los bloques en que atenderás pacientes. Puedes crear varios bloques para un mismo día.</p>
+        <p id="message" class="success" role="status" aria-live="polite" hidden></p>
+        <p id="error" class="error" role="alert" aria-live="assertive" hidden></p>
+        <div class="info-box"><span aria-hidden="true">1</span><span><strong>Agrega un bloque.</strong> Selecciona el día y el rango de horas en que estarás disponible.</span></div>
+        <form id="availability-form" class="form-section">
+          <div class="field"><label for="doctor-id">ID del doctor</label><input id="doctor-id" name="doctorId" placeholder="Ej.: doctor-demo-001" required /><p class="helper-text">Al cambiar este campo verás los horarios ya registrados.</p></div>
+          <div class="field"><label for="day">Día de atención</label><select id="day" name="day" required>
             <option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option>
             <option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="7">Domingo</option>
-          </select>
-          <label for="start-time">Hora de inicio</label>
-          <input id="start-time" name="startTime" type="time" required />
-          <label for="end-time">Hora de fin</label>
-          <input id="end-time" name="endTime" type="time" required />
-          <button type="submit">Guardar horario</button>
+          </select></div>
+          <div class="field"><label for="start-time">Hora de inicio</label><input id="start-time" name="startTime" type="time" required /></div>
+          <div class="field"><label for="end-time">Hora de fin</label><input id="end-time" name="endTime" type="time" required /><p class="helper-text">La hora de fin debe ser posterior a la hora de inicio.</p></div>
+          <button type="submit">Guardar bloque de horario</button>
         </form>
-        <h2 style="margin-top: 24px">Horarios registrados</h2>
-        <div id="availability-list"></div>
+        <section class="results-section" aria-labelledby="availability-title"><div class="section-heading"><p class="eyebrow">Resumen</p><h2 id="availability-title">Horarios registrados</h2><p class="section-description">Revisa o elimina los bloques que no necesites.</p></div><div id="availability-list" class="availability-list" aria-live="polite"><p class="empty-state">Ingresa el ID del doctor para consultar sus horarios.</p></div></section>
       </section>
     </main>
     <script type="module" src="/src/disponibilidad.js"></script>

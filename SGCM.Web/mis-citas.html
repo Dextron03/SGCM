@@ -7,14 +7,16 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <main class="container"><section class="card">
+    <main class="container"><section class="card card--wide">
+      <p class="eyebrow">Seguimiento</p>
       <h1>Mis citas</h1>
-      <p id="error" class="error" hidden></p><p id="message" class="success" hidden></p>
-      <form id="appointments-form">
-        <label for="patient-id">ID del paciente</label><input id="patient-id" required />
-        <button type="submit">Consultar citas</button>
+      <p class="lead">Consulta tus próximas citas y cancela únicamente las que ya no puedas atender.</p>
+      <p id="error" class="error" role="alert" aria-live="assertive" hidden></p><p id="message" class="success" role="status" aria-live="polite" hidden></p>
+      <form id="appointments-form" class="form-section">
+        <div class="field"><label for="patient-id">ID del paciente</label><input id="patient-id" placeholder="Ej.: patient-demo-001" required /><p class="helper-text">Ingresa el identificador del perfil del paciente.</p></div>
+        <button type="submit">Ver mis citas</button>
       </form>
-      <div id="appointments-list" style="margin-top: 20px"></div>
+      <section class="results-section" aria-labelledby="appointments-title"><div class="section-heading"><p class="eyebrow">Resultados</p><h2 id="appointments-title">Citas programadas</h2><p class="section-description">Las citas canceladas se mantienen visibles como historial.</p></div><div id="appointments-list" class="appointments-list" aria-live="polite"><p class="empty-state">Consulta tu ID para ver tus citas.</p></div></section>
     </section></main>
     <script type="module" src="/src/citas.js"></script>
   </body>

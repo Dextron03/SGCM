@@ -66,6 +66,10 @@ function formatDateTime(value) {
   return new Date(value).toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' })
 }
 
+function statusLabel(status) {
+  return ({ 1: 'Pendiente', 2: 'Confirmada', 3: 'Completada', 4: 'Cancelada' })[status] ?? 'Sin estado'
+}
+
 function renderAppointments(appointments) {
   const list = document.getElementById('appointments-list')
   list.replaceChildren()
@@ -76,15 +80,16 @@ function renderAppointments(appointments) {
 
   appointments.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime)).forEach((appointment) => {
     const row = document.createElement('div')
-    row.style.marginBottom = '12px'
+    row.className = 'appointment-item'
     const detail = document.createElement('p')
-    detail.textContent = `${formatDateTime(appointment.dateTime)} — ${appointment.reason} (${appointment.status})`
+    detail.className = 'appointment-meta'
+    detail.textContent = `${formatDateTime(appointment.dateTime)} — ${appointment.reason} · ${statusLabel(appointment.status)}`
     row.append(detail)
     if (appointment.status === 1 || appointment.status === 2) {
       const cancel = document.createElement('button')
       cancel.type = 'button'
       cancel.textContent = 'Cancelar cita'
-      cancel.style.cssText = 'width:auto;padding:6px 10px;margin-top:5px'
+      cancel.className = 'cancel-button'
       cancel.addEventListener('click', async () => {
         if (!confirm('¿Deseas cancelar esta cita?')) return
         try {
@@ -111,6 +116,7 @@ if (searchForm) {
     const slots = document.getElementById('slots')
     appointmentForm.hidden = true
     slots.replaceChildren()
+    slots.hidden = false
 
     try {
       const [weeklyAvailability, appointments] = await Promise.all([
@@ -131,23 +137,33 @@ if (searchForm) {
         }
       })
       if (!availableSlots.length) {
-        slots.textContent = 'No hay horarios libres para esta fecha.'
+        const empty = document.createElement('p')
+        empty.className = 'empty-state'
+        empty.textContent = 'No hay horarios libres para esta fecha. Prueba con otro día.'
+        slots.append(empty)
         return
       }
       const title = document.createElement('p')
-      title.textContent = 'Selecciona un horario:'
+      title.className = 'section-description'
+      title.textContent = 'Paso 2: selecciona un horario disponible.'
       slots.append(title)
+      const grid = document.createElement('div')
+      grid.className = 'slot-grid'
+      slots.append(grid)
       availableSlots.forEach((slot) => {
         const button = document.createElement('button')
         button.type = 'button'
         button.textContent = slot.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' })
-        button.style.cssText = 'width:auto;padding:8px 12px;margin:4px'
+        button.className = 'slot-button'
         button.addEventListener('click', () => {
           selectedDateTime = slot
+          grid.querySelectorAll('.slot-button').forEach((item) => item.classList.remove('is-selected'))
+          button.classList.add('is-selected')
           document.getElementById('selected-slot').textContent = `Horario seleccionado: ${formatDateTime(slot.toISOString())}`
           appointmentForm.hidden = false
+          appointmentForm.scrollIntoView({ behavior: 'smooth', block: 'start' })
         })
-        slots.append(button)
+        grid.append(button)
       })
     } catch (error) {
       show(errorEl, error.message)

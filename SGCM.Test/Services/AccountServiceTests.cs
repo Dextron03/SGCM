@@ -1,0 +1,181 @@
+using Microsoft.AspNetCore.Identity;
+using Moq;
+using SGCM.Application.DTOs.Account;
+using SGCM.Application.Services;
+using SGCM.Data.Interfaces;
+using SGCM.Domain.Constants;
+using SGCM.Domain.Entities;
+using Xunit;
+
+namespace SGCM.Test.Services
+{
+    public class AccountServiceTests
+    {
+        private static (Mock<UserManager<AppUser>> userManager, Mock<IJwtTokenGenerator> tokenGenerator, AccountService service) CreateService()
+        {
+            var store = new Mock<IUserStore<AppUser>>();
+            var userManager = new Mock<UserManager<AppUser>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
+            var tokenGenerator = new Mock<IJwtTokenGenerator>();
+            tokenGenerator
+                .Setup(t => t.GenerateToken(It.IsAny<AppUser>(), It.IsAny<IEnumerable<string>>()))
+                .Returns(("fake-jwt-token", DateTime.UtcNow.AddHours(1)));
+
+            var service = new AccountService(userManager.Object, tokenGenerator.Object);
+            return (userManager, tokenGenerator, service);
+        }
+
+        private static RegisterRequestDto ValidRegisterDto() => new()
+        {
+            FullName = "Juan Perez",
+            Email = "juan.perez@example.com",
+            PhoneNumber = "8095551234",
+            Password = "Str0ng!Pass",
+            ConfirmPassword = "Str0ng!Pass",
+            Role = AppRoles.Patient
+        };
+
+        [Fact]
+        public async Task Register_ValidDto_ShouldReturnSuccessWithToken()
+        {
+            var (userManager, _, service) = CreateService();
+            var dto = ValidRegisterDto();
+
+            userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync((AppUser?)null);
+            userManager.Setup(m => m.CreateAsync(It.IsAny<AppUser>(), dto.Password)).ReturnsAsync(IdentityResult.Success);
+            userManager.Setup(m => m.AddToRoleAsync(It.IsAny<AppUser>(), dto.Role)).ReturnsAsync(IdentityResult.Success);
+
+            var result = await service.Register(dto);
+
+            Assert.True(result.Success);
+            var response = (AuthenticationResponseDto)result.Data!;
+            Assert.Equal(dto.FullName, response.FullName);
+            Assert.Equal(dto.Email, response.Email);
+            Assert.Equal("fake-jwt-token", response.JWToken);
+            Assert.Contains(AppRoles.Patient, response.Roles);
+        }
+
+        [Fact]
+        public async Task Register_PasswordsDontMatch_ShouldFail()
+        {
+            var (_, _, service) = CreateService();
+            var dto = ValidRegisterDto();
+            dto.ConfirmPassword = "OtherPassword!";
+
+            var result = await service.Register(dto);
+
+            Assert.False(result.Success);
+            Assert.Equal("Las contraseñas no coinciden.", result.Message);
+        }
+
+        [Fact]
+        public async Task Register_InvalidRole_ShouldFail()
+        {
+            var (_, _, service) = CreateService();
+            var dto = ValidRegisterDto();
+            dto.Role = "SuperAdmin";
+
+            var result = await service.Register(dto);
+
+            Assert.False(result.Success);
+            Assert.Equal("El rol especificado no es válido.", result.Message);
+        }
+
+        [Fact]
+        public async Task Register_EmailAlreadyExists_ShouldFail()
+        {
+            var (userManager, _, service) = CreateService();
+            var dto = ValidRegisterDto();
+
+            userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(new AppUser { Email = dto.Email });
+
+            var result = await service.Register(dto);
+
+            Assert.False(result.Success);
+            Assert.Equal("Ya existe una cuenta con ese correo electrónico.", result.Message);
+        }
+
+        [Fact]
+        public async Task Register_RoleAssignmentFails_ShouldDeleteUserAndFail()
+        {
+            var (userManager, _, service) = CreateService();
+            var dto = ValidRegisterDto();
+
+            userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync((AppUser?)null);
+            userManager.Setup(m => m.CreateAsync(It.IsAny<AppUser>(), dto.Password)).ReturnsAsync(IdentityResult.Success);
+            userManager
+                .Setup(m => m.AddToRoleAsync(It.IsAny<AppUser>(), dto.Role))
+                .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "No se pudo asignar el rol." }));
+            userManager.Setup(m => m.DeleteAsync(It.IsAny<AppUser>())).ReturnsAsync(IdentityResult.Success);
+
+            var result = await service.Register(dto);
+
+            Assert.False(result.Success);
+            userManager.Verify(m => m.DeleteAsync(It.IsAny<AppUser>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Login_ValidCredentials_ShouldReturnSuccessWithToken()
+        {
+            var (userManager, _, service) = CreateService();
+            var dto = new LoginRequestDto { Email = "juan.perez@example.com", Password = "Str0ng!Pass" };
+            var user = new AppUser { Email = dto.Email, FullName = "Juan Perez", IsActive = true };
+
+            userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+            userManager.Setup(m => m.CheckPasswordAsync(user, dto.Password)).ReturnsAsync(true);
+            userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string> { AppRoles.Patient });
+
+            var result = await service.Login(dto);
+
+            Assert.True(result.Success);
+            var response = (AuthenticationResponseDto)result.Data!;
+            Assert.Equal("fake-jwt-token", response.JWToken);
+            Assert.Contains(AppRoles.Patient, response.Roles);
+        }
+
+        [Fact]
+        public async Task Login_UserNotFound_ShouldReturnGenericError()
+        {
+            var (userManager, _, service) = CreateService();
+            var dto = new LoginRequestDto { Email = "unknown@example.com", Password = "whatever" };
+
+            userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync((AppUser?)null);
+
+            var result = await service.Login(dto);
+
+            Assert.False(result.Success);
+            Assert.Equal("Credenciales inválidas.", result.Message);
+        }
+
+        [Fact]
+        public async Task Login_WrongPassword_ShouldReturnGenericError()
+        {
+            var (userManager, _, service) = CreateService();
+            var dto = new LoginRequestDto { Email = "juan.perez@example.com", Password = "WrongPassword" };
+            var user = new AppUser { Email = dto.Email, IsActive = true };
+
+            userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+            userManager.Setup(m => m.CheckPasswordAsync(user, dto.Password)).ReturnsAsync(false);
+
+            var result = await service.Login(dto);
+
+            Assert.False(result.Success);
+            Assert.Equal("Credenciales inválidas.", result.Message);
+        }
+
+        [Fact]
+        public async Task Login_InactiveUser_ShouldFail()
+        {
+            var (userManager, _, service) = CreateService();
+            var dto = new LoginRequestDto { Email = "juan.perez@example.com", Password = "Str0ng!Pass" };
+            var user = new AppUser { Email = dto.Email, IsActive = false };
+
+            userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+            userManager.Setup(m => m.CheckPasswordAsync(user, dto.Password)).ReturnsAsync(true);
+
+            var result = await service.Login(dto);
+
+            Assert.False(result.Success);
+            Assert.Equal("La cuenta está inactiva.", result.Message);
+        }
+    }
+}

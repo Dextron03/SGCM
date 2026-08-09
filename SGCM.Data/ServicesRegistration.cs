@@ -5,6 +5,7 @@ using SGCM.Data.Context;
 using SGCM.Data.Core;
 using SGCM.Data.Interfaces;
 using SGCM.Data.Repositories;
+using SGCM.Domain.Settings;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -49,6 +50,10 @@ namespace SGCM.Data
 
             // Registro de servicios de infraestructura
             service.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
+            service.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+            service.Configure<FrontendSettings>(configuration.GetSection("FrontendSettings"));
+            service.AddScoped<IEmailSender, SmtpEmailSender>();
         }
 
     }

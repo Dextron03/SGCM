@@ -28,5 +28,12 @@ namespace SGCM.Controllers
             var result = await _accountService.Login(dto);
             return result.Success ? Ok(result) : BadRequest(result);
         }
+
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
+        {
+            var result = await _accountService.ConfirmEmail(userId, token);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
     }
 }

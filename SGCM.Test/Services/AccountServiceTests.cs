@@ -1,17 +1,19 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Moq;
 using SGCM.Application.DTOs.Account;
 using SGCM.Application.Services;
 using SGCM.Data.Interfaces;
 using SGCM.Domain.Constants;
 using SGCM.Domain.Entities;
+using SGCM.Domain.Settings;
 using Xunit;
 
 namespace SGCM.Test.Services
 {
     public class AccountServiceTests
     {
-        private static (Mock<UserManager<AppUser>> userManager, Mock<IJwtTokenGenerator> tokenGenerator, AccountService service) CreateService()
+        private static (Mock<UserManager<AppUser>> userManager, Mock<IJwtTokenGenerator> tokenGenerator, Mock<IEmailSender> emailSender, AccountService service) CreateService()
         {
             var store = new Mock<IUserStore<AppUser>>();
             var userManager = new Mock<UserManager<AppUser>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
@@ -20,8 +22,11 @@ namespace SGCM.Test.Services
                 .Setup(t => t.GenerateToken(It.IsAny<AppUser>(), It.IsAny<IEnumerable<string>>()))
                 .Returns(("fake-jwt-token", DateTime.UtcNow.AddHours(1)));
 
-            var service = new AccountService(userManager.Object, tokenGenerator.Object);
-            return (userManager, tokenGenerator, service);
+            var emailSender = new Mock<IEmailSender>();
+            var frontendSettings = Options.Create(new FrontendSettings { BaseUrl = "http://localhost:5173" });
+
+            var service = new AccountService(userManager.Object, tokenGenerator.Object, emailSender.Object, frontendSettings);
+            return (userManager, tokenGenerator, emailSender, service);
         }
 
         private static RegisterRequestDto ValidRegisterDto() => new()
@@ -35,29 +40,26 @@ namespace SGCM.Test.Services
         };
 
         [Fact]
-        public async Task Register_ValidDto_ShouldReturnSuccessWithToken()
+        public async Task Register_ValidDto_ShouldSendConfirmationEmail()
         {
-            var (userManager, _, service) = CreateService();
+            var (userManager, _, emailSender, service) = CreateService();
             var dto = ValidRegisterDto();
 
             userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync((AppUser?)null);
             userManager.Setup(m => m.CreateAsync(It.IsAny<AppUser>(), dto.Password)).ReturnsAsync(IdentityResult.Success);
             userManager.Setup(m => m.AddToRoleAsync(It.IsAny<AppUser>(), dto.Role)).ReturnsAsync(IdentityResult.Success);
+            userManager.Setup(m => m.GenerateEmailConfirmationTokenAsync(It.IsAny<AppUser>())).ReturnsAsync("fake-confirmation-token");
 
             var result = await service.Register(dto);
 
             Assert.True(result.Success);
-            var response = (AuthenticationResponseDto)result.Data!;
-            Assert.Equal(dto.FullName, response.FullName);
-            Assert.Equal(dto.Email, response.Email);
-            Assert.Equal("fake-jwt-token", response.JWToken);
-            Assert.Contains(AppRoles.Patient, response.Roles);
+            emailSender.Verify(e => e.SendEmailAsync(dto.Email, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
         public async Task Register_PasswordsDontMatch_ShouldFail()
         {
-            var (_, _, service) = CreateService();
+            var (_, _, _, service) = CreateService();
             var dto = ValidRegisterDto();
             dto.ConfirmPassword = "OtherPassword!";
 
@@ -70,7 +72,7 @@ namespace SGCM.Test.Services
         [Fact]
         public async Task Register_InvalidRole_ShouldFail()
         {
-            var (_, _, service) = CreateService();
+            var (_, _, _, service) = CreateService();
             var dto = ValidRegisterDto();
             dto.Role = "SuperAdmin";
 
@@ -83,7 +85,7 @@ namespace SGCM.Test.Services
         [Fact]
         public async Task Register_EmailAlreadyExists_ShouldFail()
         {
-            var (userManager, _, service) = CreateService();
+            var (userManager, _, _, service) = CreateService();
             var dto = ValidRegisterDto();
 
             userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(new AppUser { Email = dto.Email });
@@ -97,7 +99,7 @@ namespace SGCM.Test.Services
         [Fact]
         public async Task Register_RoleAssignmentFails_ShouldDeleteUserAndFail()
         {
-            var (userManager, _, service) = CreateService();
+            var (userManager, _, _, service) = CreateService();
             var dto = ValidRegisterDto();
 
             userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync((AppUser?)null);
@@ -116,9 +118,9 @@ namespace SGCM.Test.Services
         [Fact]
         public async Task Login_ValidCredentials_ShouldReturnSuccessWithToken()
         {
-            var (userManager, _, service) = CreateService();
+            var (userManager, _, _, service) = CreateService();
             var dto = new LoginRequestDto { Email = "juan.perez@example.com", Password = "Str0ng!Pass" };
-            var user = new AppUser { Email = dto.Email, FullName = "Juan Perez", IsActive = true };
+            var user = new AppUser { Email = dto.Email, FullName = "Juan Perez", IsActive = true, EmailConfirmed = true };
 
             userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
             userManager.Setup(m => m.CheckPasswordAsync(user, dto.Password)).ReturnsAsync(true);
@@ -135,7 +137,7 @@ namespace SGCM.Test.Services
         [Fact]
         public async Task Login_UserNotFound_ShouldReturnGenericError()
         {
-            var (userManager, _, service) = CreateService();
+            var (userManager, _, _, service) = CreateService();
             var dto = new LoginRequestDto { Email = "unknown@example.com", Password = "whatever" };
 
             userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync((AppUser?)null);
@@ -149,9 +151,9 @@ namespace SGCM.Test.Services
         [Fact]
         public async Task Login_WrongPassword_ShouldReturnGenericError()
         {
-            var (userManager, _, service) = CreateService();
+            var (userManager, _, _, service) = CreateService();
             var dto = new LoginRequestDto { Email = "juan.perez@example.com", Password = "WrongPassword" };
-            var user = new AppUser { Email = dto.Email, IsActive = true };
+            var user = new AppUser { Email = dto.Email, IsActive = true, EmailConfirmed = true };
 
             userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
             userManager.Setup(m => m.CheckPasswordAsync(user, dto.Password)).ReturnsAsync(false);
@@ -163,11 +165,27 @@ namespace SGCM.Test.Services
         }
 
         [Fact]
+        public async Task Login_EmailNotConfirmed_ShouldFail()
+        {
+            var (userManager, _, _, service) = CreateService();
+            var dto = new LoginRequestDto { Email = "juan.perez@example.com", Password = "Str0ng!Pass" };
+            var user = new AppUser { Email = dto.Email, IsActive = true, EmailConfirmed = false };
+
+            userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+            userManager.Setup(m => m.CheckPasswordAsync(user, dto.Password)).ReturnsAsync(true);
+
+            var result = await service.Login(dto);
+
+            Assert.False(result.Success);
+            Assert.Equal("Debes confirmar tu correo electrónico antes de iniciar sesión.", result.Message);
+        }
+
+        [Fact]
         public async Task Login_InactiveUser_ShouldFail()
         {
-            var (userManager, _, service) = CreateService();
+            var (userManager, _, _, service) = CreateService();
             var dto = new LoginRequestDto { Email = "juan.perez@example.com", Password = "Str0ng!Pass" };
-            var user = new AppUser { Email = dto.Email, IsActive = false };
+            var user = new AppUser { Email = dto.Email, IsActive = false, EmailConfirmed = true };
 
             userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
             userManager.Setup(m => m.CheckPasswordAsync(user, dto.Password)).ReturnsAsync(true);

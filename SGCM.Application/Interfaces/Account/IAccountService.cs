@@ -7,5 +7,6 @@ namespace SGCM.Application.Interfaces
     {
         Task<OperationResult> Register(RegisterRequestDto dto);
         Task<OperationResult> Login(LoginRequestDto dto);
+        Task<OperationResult> ConfirmEmail(string userId, string token);
     }
 }

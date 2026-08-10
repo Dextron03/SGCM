@@ -27,6 +27,7 @@ namespace SGCM
             {
                 app.MapOpenApi();
                 app.ApplyMigrations();
+                app.SeedTestDataAsync().GetAwaiter().GetResult();
             }
 
             app.UseHttpsRedirection();

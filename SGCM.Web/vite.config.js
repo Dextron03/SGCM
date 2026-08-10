@@ -24,6 +24,7 @@ export default defineConfig({
         availability: resolveFromRoot('./disponibilidad.html'),
         scheduleAppointment: resolveFromRoot('./agendar-cita.html'),
         appointments: resolveFromRoot('./mis-citas.html'),
+        doctorAppointments: resolveFromRoot('./citas-doctor.html'),
         doctorProfile: resolveFromRoot('./perfil-doctor.html'),
         specialtiesAdmin: resolveFromRoot('./admin-especialidades.html'),
         patientProfile: resolveFromRoot('./perfil-paciente.html'),

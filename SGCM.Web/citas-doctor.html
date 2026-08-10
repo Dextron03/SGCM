@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SGCM - Mi agenda</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main class="container"><section class="card card--wide">
+      <p class="eyebrow">Agenda</p>
+      <h1>Mi agenda</h1>
+      <p class="lead">Confirma, rechaza, reprograma o cancela las citas solicitadas por tus pacientes.</p>
+      <p id="error" class="error" role="alert" aria-live="assertive" hidden></p><p id="message" class="success" role="status" aria-live="polite" hidden></p>
+      <section class="results-section" aria-labelledby="appointments-title"><div class="section-heading"><p class="eyebrow">Resultados</p><h2 id="appointments-title">Citas de mis pacientes</h2><p class="section-description">Las solicitudes pendientes requieren tu confirmación o rechazo.</p></div><div id="appointments-list" class="appointments-list" aria-live="polite"><p class="empty-state">Cargando tu agenda...</p></div></section>
+    </section></main>
+    <script type="module" src="/src/citas-doctor.js"></script>
+  </body>
+</html>

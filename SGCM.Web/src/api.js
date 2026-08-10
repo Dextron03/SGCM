@@ -24,6 +24,14 @@ export async function confirmEmail(userId, token) {
   return response.json()
 }
 
+export function forgotPassword(email) {
+  return postJson('/forgot-password', { email })
+}
+
+export function resetPassword(userId, token, newPassword, confirmPassword) {
+  return postJson('/reset-password', { userId, token, newPassword, confirmPassword })
+}
+
 export function saveSession(authResponse) {
   localStorage.setItem(SESSION_KEY, JSON.stringify(authResponse))
 }

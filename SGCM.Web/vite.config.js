@@ -21,6 +21,8 @@ export default defineConfig({
         register: resolveFromRoot('./register.html'),
         dashboard: resolveFromRoot('./dashboard.html'),
         confirmEmail: resolveFromRoot('./confirm-email.html'),
+        forgotPassword: resolveFromRoot('./forgot-password.html'),
+        resetPassword: resolveFromRoot('./reset-password.html'),
         availability: resolveFromRoot('./disponibilidad.html'),
         scheduleAppointment: resolveFromRoot('./agendar-cita.html'),
         appointments: resolveFromRoot('./mis-citas.html'),

@@ -26,6 +26,8 @@ export default defineConfig({
         appointments: resolveFromRoot('./mis-citas.html'),
         doctorProfile: resolveFromRoot('./perfil-doctor.html'),
         specialtiesAdmin: resolveFromRoot('./admin-especialidades.html'),
+        patientProfile: resolveFromRoot('./perfil-paciente.html'),
+        medicalRecords: resolveFromRoot('./expediente-medico.html'),
       },
     },
   },

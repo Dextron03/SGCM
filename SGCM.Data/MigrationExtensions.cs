@@ -17,39 +17,50 @@ namespace SGCM.Data
     {
         public static void ApplyMigrations(this IApplicationBuilder app)
         {
-            var runMigrations = Environment.GetEnvironmentVariable("RUN_MIGRATIONS");
-
-            if(runMigrations != "true") return;
-
             using IServiceScope scope = app.ApplicationServices.CreateScope();
 
             using SgcmDbContext context = scope.ServiceProvider.GetRequiredService<SgcmDbContext>();
 
+            var isInMemory = context.Database.IsInMemory();
+
+            // La base en memoria no persiste entre reinicios, así que siempre debe
+            // inicializarse. Para SQL Server, aplicar migraciones es una operación
+            // explícita que requiere RUN_MIGRATIONS=true.
+            if (!isInMemory && Environment.GetEnvironmentVariable("RUN_MIGRATIONS") != "true") return;
+
             try
             {
-
-                Console.WriteLine("Aplicando migraciones.");
-                context.Database.Migrate();
-                Console.WriteLine("Migraciones aplicadas con exito.");
+                if (isInMemory)
+                {
+                    Console.WriteLine("Inicializando base de datos en memoria.");
+                    context.Database.EnsureCreated();
+                }
+                else
+                {
+                    Console.WriteLine("Aplicando migraciones.");
+                    context.Database.Migrate();
+                }
+                Console.WriteLine("Base de datos lista.");
             }
             catch(Exception ex)
             {
-                Console.WriteLine($"Error al migrar: {ex.Message}");
+                Console.WriteLine($"Error al preparar la base de datos: {ex.Message}");
             }
         }
 
         public static async Task SeedTestDataAsync(this IApplicationBuilder app)
         {
-            var runSeed = Environment.GetEnvironmentVariable("RUN_SEED");
-
-            if (runSeed != "true") return;
-
             using IServiceScope scope = app.ApplicationServices.CreateScope();
             var services = scope.ServiceProvider;
 
+            var context = services.GetRequiredService<SgcmDbContext>();
+
+            // Igual que con la inicialización: en memoria siempre se siembra (no hay
+            // datos previos que preservar); en SQL Server sigue siendo opt-in.
+            if (!context.Database.IsInMemory() && Environment.GetEnvironmentVariable("RUN_SEED") != "true") return;
+
             var userManager = services.GetRequiredService<UserManager<AppUser>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-            var context = services.GetRequiredService<SgcmDbContext>();
 
             try
             {

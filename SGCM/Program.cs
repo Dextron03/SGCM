@@ -26,9 +26,10 @@ namespace SGCM
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
-                app.ApplyMigrations();
-                app.SeedTestDataAsync().GetAwaiter().GetResult();
             }
+
+            app.ApplyMigrations();
+            app.SeedTestDataAsync().GetAwaiter().GetResult();
 
             app.UseHttpsRedirection();
 

@@ -1,4 +1,3 @@
-
 using SGCM.Data.Context;
 using SGCM.Data;
 using SGCM.Application;
@@ -12,8 +11,8 @@ namespace SGCM
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
             builder.Services.AddControllers();
+
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
@@ -37,7 +36,6 @@ namespace SGCM
 
             app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 

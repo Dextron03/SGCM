@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SGCM.Application.DTOs.Specialty;
 using SGCM.Application.Interfaces;
+using SGCM.Domain.Constants;
 
 namespace SGCM.Controllers
 {
@@ -32,6 +33,7 @@ namespace SGCM.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = AppRoles.Admin)]
         public async Task<IActionResult> Create([FromBody] CreateSpecialtyDto dto)
         {
             var result = await _specialtyService.Create(dto);
@@ -49,6 +51,7 @@ namespace SGCM.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = AppRoles.Admin)]
         public async Task<IActionResult> Update(
             string id,
             [FromBody] UpdateSpecialtyDto dto)
@@ -60,6 +63,7 @@ namespace SGCM.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = AppRoles.Admin)]
         public async Task<IActionResult> Delete(string id)
         {
             var result = await _specialtyService.Delete(id);

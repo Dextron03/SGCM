@@ -4,15 +4,18 @@ import { requireSession } from './guard.js'
 const LINKS_BY_ROLE = {
   Doctor: [
     { href: '/perfil-doctor.html', title: 'Mi perfil médico', description: 'Consulta tus datos profesionales y tu especialidad.' },
+    { href: '/citas-doctor.html', title: 'Mi agenda', description: 'Confirma, rechaza, reprograma o cancela citas de tus pacientes.' },
     { href: '/disponibilidad.html', title: 'Mi disponibilidad', description: 'Define tu horario semanal de atención.' },
     { href: '/expediente-medico.html', title: 'Expedientes médicos', description: 'Registra el expediente de tus pacientes tras la consulta.' },
-    { href: '/admin-especialidades.html', title: 'Especialidades', description: 'Administra el catálogo de especialidades médicas.' },
   ],
   Patient: [
     { href: '/perfil-paciente.html', title: 'Mi perfil', description: 'Consulta tu información personal registrada.' },
     { href: '/agendar-cita.html', title: 'Agendar cita', description: 'Busca disponibilidad y reserva un horario.' },
     { href: '/mis-citas.html', title: 'Mis citas', description: 'Revisa tus próximas citas y cancela si lo necesitas.' },
     { href: '/expediente-medico.html', title: 'Mis expedientes', description: 'Consulta el historial de tus consultas médicas.' },
+  ],
+  Admin: [
+    { href: '/admin-especialidades.html', title: 'Especialidades', description: 'Administra el catálogo de especialidades médicas.' },
   ],
 }
 

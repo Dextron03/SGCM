@@ -1,3 +1,11 @@
+import { getSession } from './api.js'
+
+function authHeaders() {
+  const session = getSession()
+  const token = session?.jwToken || session?.jwtToken || session?.token
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
 const days = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const form = document.getElementById('availability-form')
 const doctorIdInput = document.getElementById('doctor-id')
@@ -51,10 +59,15 @@ async function request(path, options = {}) {
 
   try {
     const response = await fetch(`/api/availability${path}`, {
-      headers: { 'Content-Type': 'application/json' },
       ...options,
+      headers: { 'Content-Type': 'application/json', ...authHeaders(), ...(options.headers || {}) },
       signal: controller.signal,
     })
+
+    if (response.status === 401) {
+      throw new Error('Tu sesión no es válida o ha expirado.')
+    }
+
     const body = await response.text()
     let result
 

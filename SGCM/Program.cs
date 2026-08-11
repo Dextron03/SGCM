@@ -13,6 +13,21 @@ namespace SGCM
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            var jwtKey = builder.Configuration["JWTSettings:Key"];
+            if (string.IsNullOrWhiteSpace(jwtKey))
+            {
+                throw new InvalidOperationException(
+                    "JWTSettings:Key no está configurado. En desarrollo local: " +
+                    "dotnet user-secrets set \"JWTSettings:Key\" \"...\" (proyecto SGCM.Web). " +
+                    "En un App Service: Configuration -> Application settings -> JWTSettings__Key.");
+            }
+            if (System.Text.Encoding.UTF8.GetByteCount(jwtKey) < 32)
+            {
+                throw new InvalidOperationException(
+                    "JWTSettings:Key es demasiado corta: el algoritmo HS256 exige al menos 256 bits (32 caracteres ASCII). " +
+                    "Usa una clave más larga (por ejemplo, generada con 'openssl rand -base64 32').");
+            }
+
             // Add services to the container.
             builder.Services.AddControllers();
 

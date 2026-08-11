@@ -41,6 +41,6 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/amnerysdev/sgcm:${{ steps.vars.outputs.tag }}
+          tags: ghcr.io/dextron03/sgcm:${{ steps.vars.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

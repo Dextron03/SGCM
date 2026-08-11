@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Options;
 using SGCM.Data.Context;
 using SGCM.Data;
 using SGCM.Application;
+using SGCM.Domain.Settings;
 
 namespace SGCM
 {
@@ -9,6 +12,21 @@ namespace SGCM
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            var jwtKey = builder.Configuration["JWTSettings:Key"];
+            if (string.IsNullOrWhiteSpace(jwtKey))
+            {
+                throw new InvalidOperationException(
+                    "JWTSettings:Key no está configurado. En desarrollo local: " +
+                    "dotnet user-secrets set \"JWTSettings:Key\" \"...\" (proyecto SGCM.Web). " +
+                    "En un App Service: Configuration -> Application settings -> JWTSettings__Key.");
+            }
+            if (System.Text.Encoding.UTF8.GetByteCount(jwtKey) < 32)
+            {
+                throw new InvalidOperationException(
+                    "JWTSettings:Key es demasiado corta: el algoritmo HS256 exige al menos 256 bits (32 caracteres ASCII). " +
+                    "Usa una clave más larga (por ejemplo, generada con 'openssl rand -base64 32').");
+            }
 
             // Add services to the container.
             builder.Services.AddControllers();
@@ -20,13 +38,43 @@ namespace SGCM
             builder.Services.AddDataLayerIoc(builder.Configuration);
             builder.Services.AddApplicationIoc();
 
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                // El proxy de Azure App Service no está en la lista de redes/proxies
+                // confiables por defecto; hay que vaciarla para que los headers
+                // reenviados (X-Forwarded-Proto, etc.) se respeten.
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
+
             var app = builder.Build();
+
+            // Debe ir antes que cualquier middleware que dependa del esquema/host
+            // real de la petición (p. ej. UseHttpsRedirection), ya que App Service
+            // termina TLS en su borde y reenvía la petición como HTTP puro.
+            app.UseForwardedHeaders();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
-                app.ApplyMigrations();
+            }
+
+            app.ApplyMigrations();
+            app.SeedTestDataAsync().GetAwaiter().GetResult();
+
+            if (!app.Environment.IsDevelopment())
+            {
+                var frontendSettings = app.Services.GetRequiredService<IOptions<FrontendSettings>>().Value;
+                if (string.IsNullOrWhiteSpace(frontendSettings.BaseUrl) || frontendSettings.BaseUrl.Contains("localhost"))
+                {
+                    app.Logger.LogWarning(
+                        "FrontendSettings:BaseUrl no está configurado para este ambiente (valor actual: '{BaseUrl}'). " +
+                        "Los enlaces de confirmación de cuenta y restablecimiento de contraseña quedarán rotos. " +
+                        "Configúralo en la App Service Configuration como FrontendSettings__BaseUrl.",
+                        frontendSettings.BaseUrl);
+                }
             }
 
             app.UseHttpsRedirection();

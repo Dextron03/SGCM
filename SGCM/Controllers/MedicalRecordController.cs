@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SGCM.Application.DTOs.MedicalRecord;
 using SGCM.Application.Interfaces;
+using SGCM.Domain.Constants;
 using SGCM.Domain.Core;
 
 namespace SGCM.Controllers
@@ -19,6 +20,7 @@ namespace SGCM.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = AppRoles.Admin)]
         public async Task<IActionResult> GetAll()
         {
             var result = await _medicalRecordService.GetAll();
@@ -47,6 +49,7 @@ namespace SGCM.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = AppRoles.Doctor + "," + AppRoles.Admin)]
         public async Task<IActionResult> Create(
             [FromBody] CreateMedicalRecordDto dto)
         {
@@ -65,6 +68,7 @@ namespace SGCM.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = AppRoles.Doctor + "," + AppRoles.Admin)]
         public async Task<IActionResult> Update(
             string id,
             [FromBody] UpdateMedicalRecordDto dto)
@@ -77,6 +81,7 @@ namespace SGCM.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = AppRoles.Admin)]
         public async Task<IActionResult> Delete(string id)
         {
             var result = await _medicalRecordService.Delete(id);

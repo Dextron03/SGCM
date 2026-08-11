@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Moq;
 using SGCM.Application.DTOs.Appointment;
 using SGCM.Application.Services;
@@ -17,6 +18,9 @@ namespace SGCM.Test.Services
             var doctorRepo = new Mock<IDoctorRepository>();
             var patientRepo = new Mock<IPatientRepository>();
             var availabilityRepo = new Mock<IAvailabilityRepository>();
+            var store = new Mock<IUserStore<AppUser>>();
+            var userManager = new Mock<UserManager<AppUser>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
+            var emailSender = new Mock<IEmailSender>();
             availabilityRepo.Setup(r => r.GetByDoctor(It.IsAny<string>())).ReturnsAsync(new OperationResult
             {
                 Data = Enumerable.Range(1, 7).Select(day => new Availability
@@ -27,7 +31,7 @@ namespace SGCM.Test.Services
                 }).ToList()
             });
             appointmentRepo.Setup(r => r.GetByDoctor(It.IsAny<string>())).ReturnsAsync(new OperationResult { Data = new List<Appointment>() });
-            var service = new AppointmentService(appointmentRepo.Object, doctorRepo.Object, patientRepo.Object, availabilityRepo.Object);
+            var service = new AppointmentService(appointmentRepo.Object, doctorRepo.Object, patientRepo.Object, availabilityRepo.Object, userManager.Object, emailSender.Object);
             return (appointmentRepo, doctorRepo, patientRepo, service);
         }
 
@@ -122,7 +126,7 @@ namespace SGCM.Test.Services
             doctorRepo.Setup(r => r.GetById("doc-1")).ReturnsAsync(new OperationResult { Data = new Doctor { Id = "doc-1" } });
             appointmentRepo.Setup(r => r.Add(It.IsAny<Appointment>())).ReturnsAsync((Appointment a) => new OperationResult { Data = a });
 
-            var localDateTime = new DateTime(2026, 8, 10, 10, 0, 0, DateTimeKind.Unspecified);
+            var localDateTime = DateTime.UtcNow.Date.AddDays(1).AddHours(10);
             var dto = new CreateAppointmentDto { PatientId = "pat-1", DoctorId = "doc-1", DateTime = localDateTime, Reason = "Chequeo" };
 
             // Act
@@ -153,7 +157,7 @@ namespace SGCM.Test.Services
         {
             // Arrange
             var (appointmentRepo, _, _, service) = CreateService();
-            var appointment = new Appointment { Id = "app-1", PatientId = "pat-1", DoctorId = "doc-1", Reason = "Chequeo", DateTime = DateTime.UtcNow.AddDays(1) };
+            var appointment = new Appointment { Id = "app-1", PatientId = "pat-1", DoctorId = "doc-1", Reason = "Chequeo", DateTime = DateTime.UtcNow.AddDays(1), Status = AppointmentStatus.Pending };
             appointmentRepo.Setup(r => r.GetById("app-1")).ReturnsAsync(new OperationResult { Data = appointment });
             appointmentRepo.Setup(r => r.Update(It.IsAny<Appointment>())).ReturnsAsync((Appointment a) => new OperationResult { Data = a });
             var newDate = DateTime.UtcNow.AddDays(2);

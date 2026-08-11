@@ -206,6 +206,10 @@ button:active { transform: translateY(1px); }
 .availability-item p, .appointment-item p { margin: 0; }
 .appointment-meta { color: var(--muted); font-size: 0.9rem; line-height: 1.45; }
 .availability-item button, .appointment-item button { width: auto; min-height: 36px; padding: 7px 10px; }
+.appointment-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.appointment-item { flex-wrap: wrap; }
+.reschedule-form { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.reschedule-form input { width: auto; }
 
 .badge {
     display: inline-block;
@@ -217,6 +221,21 @@ button:active { transform: translateY(1px); }
     font-size: 0.85rem;
     font-weight: 700;
 }
+
+.quick-links { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 4px 0 24px; }
+.quick-link-card {
+    display: block;
+    padding: 16px;
+    color: var(--ink);
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: border-color 150ms ease, background 150ms ease;
+}
+.quick-link-card:hover { color: var(--ink); background: var(--primary-soft); border-color: #93c5fd; }
+.quick-link-card strong { display: block; margin-bottom: 4px; font-size: 0.98rem; }
+.quick-link-card span { display: block; color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
 
 .switch-link { margin: 20px 0 0; color: var(--muted); text-align: center; }
 a { color: var(--primary); font-weight: 700; }

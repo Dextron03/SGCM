@@ -1,4 +1,11 @@
 import { serializeLocalDateTime } from './appointment-utils.js'
+import { getSession } from './api.js'
+
+function authHeaders() {
+  const session = getSession()
+  const token = session?.jwToken || session?.jwtToken || session?.token
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 const appointmentForm = document.getElementById('appointment-form')
 const searchForm = document.getElementById('search-form')
@@ -56,10 +63,14 @@ async function requestJson(url, options = {}) {
 
   try {
     const response = await fetch(url, {
-      headers: { 'Content-Type': 'application/json' },
       ...options,
+      headers: { 'Content-Type': 'application/json', ...authHeaders(), ...(options.headers || {}) },
       signal: controller.signal,
     })
+    if (response.status === 401) {
+      throw new Error('Tu sesión no es válida o ha expirado.')
+    }
+
     const body = await response.text()
     let result
 
@@ -98,6 +109,42 @@ function statusLabel(status) {
   return ({ 1: 'Pendiente', 2: 'Confirmada', 3: 'Completada', 4: 'Cancelada' })[status] ?? 'Sin estado'
 }
 
+function buildRescheduleForm(appointment, onDone) {
+  const form = document.createElement('form')
+  form.className = 'reschedule-form'
+  form.hidden = true
+
+  const input = document.createElement('input')
+  input.type = 'datetime-local'
+  input.required = true
+
+  const save = document.createElement('button')
+  save.type = 'submit'
+  save.textContent = 'Guardar nueva fecha'
+
+  form.append(input, save)
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    if (!input.value) return
+    try {
+      await api(`/${appointment.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          dateTime: serializeLocalDateTime(new Date(input.value)),
+          reason: appointment.reason,
+        }),
+      })
+      show(messageEl, 'La cita fue reprogramada y quedó pendiente de confirmación.')
+      onDone()
+    } catch (error) {
+      show(errorEl, error.message)
+    }
+  })
+
+  return form
+}
+
 function renderAppointments(appointments) {
   const list = document.getElementById('appointments-list')
   list.replaceChildren()
@@ -114,6 +161,19 @@ function renderAppointments(appointments) {
     detail.textContent = `${formatDateTime(appointment.dateTime)} — ${appointment.reason} · ${statusLabel(appointment.status)}`
     row.append(detail)
     if (appointment.status === 1 || appointment.status === 2) {
+      const actions = document.createElement('div')
+      actions.className = 'appointment-actions'
+
+      const rescheduleForm = buildRescheduleForm(appointment, () => appointmentsForm.requestSubmit())
+
+      const reschedule = document.createElement('button')
+      reschedule.type = 'button'
+      reschedule.textContent = 'Reprogramar'
+      reschedule.className = 'button-secondary'
+      reschedule.addEventListener('click', () => {
+        rescheduleForm.hidden = !rescheduleForm.hidden
+      })
+
       const cancel = document.createElement('button')
       cancel.type = 'button'
       cancel.textContent = 'Cancelar cita'
@@ -128,7 +188,9 @@ function renderAppointments(appointments) {
           show(errorEl, error.message)
         }
       })
-      row.append(cancel)
+
+      actions.append(reschedule, cancel)
+      row.append(actions, rescheduleForm)
     }
     list.append(row)
   })

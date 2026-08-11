@@ -62,3 +62,6 @@ pnpm-debug.log*
 
 # Respaldos temporales de proyectos .NET
 *.Backup.tmp
+
+# Notas personales de gestion del proyecto
+Tareas.txt

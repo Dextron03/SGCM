@@ -119,6 +119,61 @@ namespace SGCM.Application.Services
             return new OperationResult { Success = true, Message = "Correo confirmado exitosamente. Ya puedes iniciar sesión." };
         }
 
+        public async Task<OperationResult> ForgotPassword(ForgotPasswordRequestDto dto)
+        {
+            const string genericMessage = "Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.";
+
+            if (dto is null || string.IsNullOrWhiteSpace(dto.Email))
+                return new OperationResult { Success = false, Message = "El correo electrónico no puede estar vacío." };
+
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user is null)
+                return new OperationResult { Success = true, Message = genericMessage };
+
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var resetLink = $"{_frontendSettings.BaseUrl}/reset-password.html?userId={user.Id}&token={Uri.EscapeDataString(resetToken)}";
+
+            try
+            {
+                await _emailSender.SendEmailAsync(
+                    user.Email!,
+                    "Restablece tu contraseña - SGCM",
+                    $"<p>Hola {user.FullName},</p>" +
+                    $"<p>Recibimos una solicitud para restablecer tu contraseña. Si fuiste tú, haz clic en el siguiente enlace:</p>" +
+                    $"<p><a href=\"{resetLink}\">Restablecer mi contraseña</a></p>" +
+                    $"<p>Si no solicitaste este cambio, puedes ignorar este correo.</p>");
+            }
+            catch
+            {
+                // No se revela si el envío falló para no filtrar si la cuenta existe.
+            }
+
+            return new OperationResult { Success = true, Message = genericMessage };
+        }
+
+        public async Task<OperationResult> ResetPassword(ResetPasswordRequestDto dto)
+        {
+            if (dto is null || string.IsNullOrWhiteSpace(dto.UserId) || string.IsNullOrWhiteSpace(dto.Token))
+                return new OperationResult { Success = false, Message = "Enlace de restablecimiento inválido." };
+            if (string.IsNullOrWhiteSpace(dto.NewPassword))
+                return new OperationResult { Success = false, Message = "La contraseña no puede estar vacía." };
+            if (!RegistroValidator.PasswordsMatch(dto.NewPassword, dto.ConfirmPassword))
+                return new OperationResult { Success = false, Message = "Las contraseñas no coinciden." };
+
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+            if (user is null)
+                return new OperationResult { Success = false, Message = "Enlace de restablecimiento inválido." };
+
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(" ", result.Errors.Select(e => e.Description));
+                return new OperationResult { Success = false, Message = $"No se pudo restablecer la contraseña: {errors}" };
+            }
+
+            return new OperationResult { Success = true, Message = "Tu contraseña fue restablecida exitosamente. Ya puedes iniciar sesión." };
+        }
+
         public async Task<OperationResult> Login(LoginRequestDto dto)
         {
             if (dto is null || string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))

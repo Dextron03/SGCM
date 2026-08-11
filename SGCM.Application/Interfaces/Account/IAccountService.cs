@@ -8,5 +8,7 @@ namespace SGCM.Application.Interfaces
         Task<OperationResult> Register(RegisterRequestDto dto);
         Task<OperationResult> Login(LoginRequestDto dto);
         Task<OperationResult> ConfirmEmail(string userId, string token);
+        Task<OperationResult> ForgotPassword(ForgotPasswordRequestDto dto);
+        Task<OperationResult> ResetPassword(ResetPasswordRequestDto dto);
     }
 }

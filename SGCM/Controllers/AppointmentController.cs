@@ -1,12 +1,15 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SGCM.Application.DTOs.Appointment;
 using SGCM.Application.Interfaces;
+using SGCM.Domain.Constants;
 using SGCM.Domain.Core;
 using SGCM.Domain.Enums;
 
 namespace SGCM.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/appointments")]
 public class AppointmentController : ControllerBase
 {
@@ -18,6 +21,7 @@ public class AppointmentController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = AppRoles.Admin)]
     public async Task<IActionResult> GetAll() => ToActionResult(await _appointmentService.GetAll());
 
     [HttpGet("{id}")]
@@ -30,9 +34,11 @@ public class AppointmentController : ControllerBase
     public async Task<IActionResult> GetByDoctor(string doctorId) => ToActionResult(await _appointmentService.GetByDoctor(doctorId));
 
     [HttpGet("status/{status}")]
+    [Authorize(Roles = AppRoles.Admin)]
     public async Task<IActionResult> GetByStatus(AppointmentStatus status) => ToActionResult(await _appointmentService.GetByStatus(status));
 
     [HttpPost]
+    [Authorize(Roles = AppRoles.Patient + "," + AppRoles.Admin)]
     public async Task<IActionResult> Create([FromBody] CreateAppointmentDto dto)
     {
         var result = await _appointmentService.Create(dto);
@@ -40,6 +46,7 @@ public class AppointmentController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = AppRoles.Patient + "," + AppRoles.Doctor + "," + AppRoles.Admin)]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateAppointmentDto dto)
     {
         dto.Id = id;
@@ -47,6 +54,7 @@ public class AppointmentController : ControllerBase
     }
 
     [HttpPatch("{id}/status")]
+    [Authorize(Roles = AppRoles.Doctor + "," + AppRoles.Admin)]
     public async Task<IActionResult> ChangeStatus(string id, [FromBody] ChangeAppointmentStatusDto dto)
     {
         dto.Id = id;

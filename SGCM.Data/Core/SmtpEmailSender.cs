@@ -17,6 +17,12 @@ namespace SGCM.Data.Core
 
         public async Task SendEmailAsync(string toEmail, string subject, string htmlBody)
         {
+            if (Environment.GetEnvironmentVariable("SGCM_DEV_FAKE_MAIL") == "true")
+            {
+                Console.WriteLine($"[DEV-FAKE-MAIL] To: {toEmail} | Subject: {subject}\n{htmlBody}");
+                return;
+            }
+
             using var client = new SmtpClient(_settings.SmtpHost, _settings.SmtpPort)
             {
                 Credentials = new NetworkCredential(_settings.SenderEmail, _settings.SenderPassword),

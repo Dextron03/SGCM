@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore.Identity;
+using Moq;
 using SGCM.Application.DTOs.Appointment;
 using SGCM.Application.DTOs.Availability;
 using SGCM.Application.Services;
 using SGCM.Data.Context;
+using SGCM.Data.Interfaces;
 using SGCM.Data.Repositories;
 using SGCM.Domain.Entities;
 using SGCM.Domain.Enums;
@@ -189,8 +192,20 @@ public class SchedulingInMemoryTests
     private static AvailabilityService CreateAvailabilityService(SgcmDbContext context) =>
         new(new AvailabilityRepository(context), new DoctorRepository(context));
 
-    private static AppointmentService CreateAppointmentService(SgcmDbContext context) =>
-        new(new AppointmentRepository(context), new DoctorRepository(context), new PatientRepository(context), new AvailabilityRepository(context));
+    private static AppointmentService CreateAppointmentService(SgcmDbContext context)
+    {
+        var store = new Mock<IUserStore<AppUser>>();
+        var userManager = new Mock<UserManager<AppUser>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
+        var emailSender = new Mock<IEmailSender>();
+
+        return new AppointmentService(
+            new AppointmentRepository(context),
+            new DoctorRepository(context),
+            new PatientRepository(context),
+            new AvailabilityRepository(context),
+            userManager.Object,
+            emailSender.Object);
+    }
 
     private static async Task SeedProfiles(SgcmDbContext context)
     {

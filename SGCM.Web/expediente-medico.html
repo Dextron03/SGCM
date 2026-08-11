@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Expedientes médicos | SGCM</title>
+
+    <link rel="stylesheet" href="/src/style.css">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --background: #f4f7fb;
+            --surface: #ffffff;
+            --text: #172033;
+            --muted: #667085;
+            --border: #e4e7ec;
+            --danger: #b42318;
+            --danger-bg: #fef3f2;
+            --success: #027a48;
+            --success-bg: #ecfdf3;
+        }
+
+        body {
+            display: block;
+            min-height: 100vh;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 6%;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            color: var(--primary);
+            font-size: 1.35rem;
+            font-weight: bold;
+        }
+
+        .topbar a {
+            color: var(--primary);
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .admin-container {
+            width: min(1100px, calc(100% - 32px));
+            margin: 38px auto;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            margin: 0 0 8px;
+            text-align: left;
+        }
+
+        .page-header p {
+            color: var(--muted);
+        }
+
+        .message {
+            display: none;
+            margin-bottom: 20px;
+            padding: 14px 16px;
+            border-radius: 10px;
+        }
+
+        .message.visible {
+            display: block;
+        }
+
+        .message.success {
+            color: var(--success);
+            background: var(--success-bg);
+        }
+
+        .message.error {
+            color: var(--danger);
+            background: var(--danger-bg);
+        }
+
+        .panel {
+            margin-bottom: 22px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--surface);
+            box-shadow: 0 8px 24px rgba(16, 24, 40, 0.05);
+        }
+
+        .panel h2 {
+            margin: 0 0 6px;
+            font-size: 1.2rem;
+        }
+
+        .panel .panel-description {
+            margin: 0 0 20px;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        label {
+            margin-bottom: 7px;
+            color: #344054;
+            font-size: 0.92rem;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            margin-bottom: 16px;
+            padding: 11px 12px;
+            border: 1px solid #d0d5dd;
+            border-radius: 8px;
+            color: var(--text);
+            font: inherit;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: var(--primary);
+            outline: 3px solid rgba(37, 99, 235, 0.14);
+        }
+
+        .save-record {
+            width: auto;
+            padding: 11px 20px;
+        }
+
+        .record-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .record-card {
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .record-card .record-date {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .record-card dl {
+            display: grid;
+            grid-template-columns: minmax(0, 140px) 1fr;
+            gap: 8px 12px;
+            margin: 0;
+        }
+
+        .record-card dt {
+            color: var(--muted);
+            font-weight: bold;
+        }
+
+        .record-card dd {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .empty-state {
+            padding: 20px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+    </style>
+</head>
+
+<body data-page="medical-records">
+    <header class="topbar">
+        <span class="brand">SGCM</span>
+        <a href="/index.html">Inicio</a>
+    </header>
+
+    <main class="admin-container">
+        <header class="page-header">
+            <h1>Expedientes médicos</h1>
+
+            <p>
+                El médico registra el expediente tras la consulta
+                y el paciente puede consultarlo en cualquier momento.
+            </p>
+        </header>
+
+        <div
+            id="record-message"
+            class="message"
+            role="status"
+            aria-live="polite">
+        </div>
+
+        <section
+            id="doctor-panel"
+            class="panel"
+            hidden>
+            <h2>Registrar expediente</h2>
+
+            <p class="panel-description">
+                Completa los datos de la consulta para dejar
+                constancia en el expediente del paciente.
+            </p>
+
+            <form id="record-form">
+                <label for="appointment-id">
+                    ID de la cita
+                </label>
+
+                <input
+                    id="appointment-id"
+                    type="text"
+                    required
+                    autocomplete="off">
+
+                <label for="patient-id">
+                    ID del paciente
+                </label>
+
+                <input
+                    id="patient-id"
+                    type="text"
+                    required
+                    autocomplete="off">
+
+                <label for="diagnosis">
+                    Diagnóstico
+                </label>
+
+                <input
+                    id="diagnosis"
+                    type="text"
+                    maxlength="500"
+                    required
+                    autocomplete="off">
+
+                <label for="treatment">
+                    Tratamiento
+                </label>
+
+                <input
+                    id="treatment"
+                    type="text"
+                    maxlength="500"
+                    required
+                    autocomplete="off">
+
+                <label for="notes">
+                    Notas adicionales
+                </label>
+
+                <textarea
+                    id="notes"
+                    maxlength="1000"></textarea>
+
+                <button
+                    id="save-record"
+                    class="save-record"
+                    type="submit">
+                    Guardar expediente
+                </button>
+            </form>
+        </section>
+
+        <section
+            id="patient-panel"
+            class="panel"
+            hidden>
+            <h2>Mis expedientes</h2>
+
+            <p class="panel-description">
+                Historial de consultas y diagnósticos registrados
+                por tus médicos.
+            </p>
+
+            <div
+                id="records-list"
+                class="record-list">
+                <p class="empty-state">
+                    Cargando expedientes...
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script
+        type="module"
+        src="/src/expedientes.js">
+    </script>
+</body>
+</html>

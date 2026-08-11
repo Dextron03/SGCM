@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SGCM.Application.DTOs.Doctor;
 using SGCM.Application.Interfaces;
+using SGCM.Domain.Constants;
 using SGCM.Domain.Core;
 
 namespace SGCM.Controllers
@@ -59,6 +60,7 @@ namespace SGCM.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = AppRoles.Doctor + "," + AppRoles.Admin)]
         public async Task<IActionResult> Create([FromBody] CreateDoctorDto dto)
         {
             var result = await _doctorService.Create(dto);
@@ -76,6 +78,7 @@ namespace SGCM.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = AppRoles.Doctor + "," + AppRoles.Admin)]
         public async Task<IActionResult> Update(
             string id,
             [FromBody] UpdateDoctorDto dto)
@@ -87,6 +90,7 @@ namespace SGCM.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = AppRoles.Admin)]
         public async Task<IActionResult> Delete(string id)
         {
             var result = await _doctorService.Delete(id);

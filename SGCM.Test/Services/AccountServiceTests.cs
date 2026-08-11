@@ -195,5 +195,102 @@ namespace SGCM.Test.Services
             Assert.False(result.Success);
             Assert.Equal("La cuenta está inactiva.", result.Message);
         }
+
+        [Fact]
+        public async Task ForgotPassword_UserExists_ShouldSendResetEmail()
+        {
+            var (userManager, _, emailSender, service) = CreateService();
+            var dto = new ForgotPasswordRequestDto { Email = "juan.perez@example.com" };
+            var user = new AppUser { Id = "user-1", Email = dto.Email, FullName = "Juan Perez" };
+
+            userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+            userManager.Setup(m => m.GeneratePasswordResetTokenAsync(user)).ReturnsAsync("fake-reset-token");
+
+            var result = await service.ForgotPassword(dto);
+
+            Assert.True(result.Success);
+            emailSender.Verify(e => e.SendEmailAsync(dto.Email, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task ForgotPassword_UserDoesNotExist_ShouldReturnGenericMessageWithoutSendingEmail()
+        {
+            var (userManager, _, emailSender, service) = CreateService();
+            var dto = new ForgotPasswordRequestDto { Email = "unknown@example.com" };
+
+            userManager.Setup(m => m.FindByEmailAsync(dto.Email)).ReturnsAsync((AppUser?)null);
+
+            var result = await service.ForgotPassword(dto);
+
+            Assert.True(result.Success);
+            emailSender.Verify(e => e.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ForgotPassword_EmptyEmail_ShouldFail()
+        {
+            var (_, _, _, service) = CreateService();
+
+            var result = await service.ForgotPassword(new ForgotPasswordRequestDto { Email = "" });
+
+            Assert.False(result.Success);
+        }
+
+        [Fact]
+        public async Task ResetPassword_Valid_ShouldSucceed()
+        {
+            var (userManager, _, _, service) = CreateService();
+            var user = new AppUser { Id = "user-1" };
+            var dto = new ResetPasswordRequestDto { UserId = "user-1", Token = "fake-token", NewPassword = "N3wStr0ng!Pass", ConfirmPassword = "N3wStr0ng!Pass" };
+
+            userManager.Setup(m => m.FindByIdAsync(dto.UserId)).ReturnsAsync(user);
+            userManager.Setup(m => m.ResetPasswordAsync(user, dto.Token, dto.NewPassword)).ReturnsAsync(IdentityResult.Success);
+
+            var result = await service.ResetPassword(dto);
+
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public async Task ResetPassword_PasswordsDontMatch_ShouldFail()
+        {
+            var (_, _, _, service) = CreateService();
+            var dto = new ResetPasswordRequestDto { UserId = "user-1", Token = "fake-token", NewPassword = "N3wStr0ng!Pass", ConfirmPassword = "Different!Pass" };
+
+            var result = await service.ResetPassword(dto);
+
+            Assert.False(result.Success);
+            Assert.Equal("Las contraseñas no coinciden.", result.Message);
+        }
+
+        [Fact]
+        public async Task ResetPassword_UserNotFound_ShouldFail()
+        {
+            var (userManager, _, _, service) = CreateService();
+            var dto = new ResetPasswordRequestDto { UserId = "missing", Token = "fake-token", NewPassword = "N3wStr0ng!Pass", ConfirmPassword = "N3wStr0ng!Pass" };
+
+            userManager.Setup(m => m.FindByIdAsync(dto.UserId)).ReturnsAsync((AppUser?)null);
+
+            var result = await service.ResetPassword(dto);
+
+            Assert.False(result.Success);
+        }
+
+        [Fact]
+        public async Task ResetPassword_InvalidToken_ShouldFail()
+        {
+            var (userManager, _, _, service) = CreateService();
+            var user = new AppUser { Id = "user-1" };
+            var dto = new ResetPasswordRequestDto { UserId = "user-1", Token = "expired-token", NewPassword = "N3wStr0ng!Pass", ConfirmPassword = "N3wStr0ng!Pass" };
+
+            userManager.Setup(m => m.FindByIdAsync(dto.UserId)).ReturnsAsync(user);
+            userManager
+                .Setup(m => m.ResetPasswordAsync(user, dto.Token, dto.NewPassword))
+                .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Token inválido." }));
+
+            var result = await service.ResetPassword(dto);
+
+            Assert.False(result.Success);
+        }
     }
 }

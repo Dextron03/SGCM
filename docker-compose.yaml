@@ -1,4 +1,4 @@
-services: 
+services:
   sgcm-api:
     build:
       context: .
@@ -7,22 +7,24 @@ services:
       - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Server=${DB_SERVER};Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};TrustServerCertificate=true;
-    depends_on:
-      - sgcm-db
+    # Descomenta si se vuelve a necesitar SQL Server (y pon
+    # DatabaseConfig.UseInMemoryDatabase en false en appsettings):
+    #   - ConnectionStrings__DefaultConnection=Server=${DB_SERVER};Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};TrustServerCertificate=true;
+    # depends_on:
+    #   - sgcm-db
 
-  sgcm-db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sql_server_dev
-    user: root
-    environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${DB_PASSWORD} # Mínimo 8 caracteres, mayúsculas, minúsculas y números
-      - MSSQL_PID=Developer # Versión gratuita para desarrollo
-    ports:
-      - "1433:1433"
-    volumes:
-      - sql_data:/var/opt/mssql
-  
-volumes:
-  sql_data:
+  # sgcm-db:
+  #   image: mcr.microsoft.com/mssql/server:2022-latest
+  #   container_name: sql_server_dev
+  #   user: root
+  #   environment:
+  #     - ACCEPT_EULA=Y
+  #     - MSSQL_SA_PASSWORD=${DB_PASSWORD} # Mínimo 8 caracteres, mayúsculas, minúsculas y números
+  #     - MSSQL_PID=Developer # Versión gratuita para desarrollo
+  #   ports:
+  #     - "1433:1433"
+  #   volumes:
+  #     - sql_data:/var/opt/mssql
+  #
+  # volumes:
+  #   sql_data:

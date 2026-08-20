@@ -1,9 +1,17 @@
-Como parte del proceso de implementación del proyecto, se deberá provisionar la infraestructura necesaria para habilitar el despliegue continuo en los entornos de Development (Dev), Quality Assurance (QA) y Production (Pro).
+Lab. Crear Pipelines de entrega continua Dev
+Requisitos de finalización
+Apertura: lunes, 10 de agosto de 2026, 00:00
+Cierre: lunes, 17 de agosto de 2026, 23:59
+Se requiere crear el pipeline de release el mismo debe estar configurado con el stage de desarrollo. Se debe enviar pdf con lo siguiente:
 
-Las tareas requeridas incluyen:
+Pipeline del build con los pasos de publish agregado
+Listado de Releases
+Listado de Deployments
+Detalle del Pipeline ejeuctado correctamente
+Historial del pipeline
+Ejecución del pipeline
+Ver detalle en el documento adjunto a la tarea. Este le servi de muestra.
 
-Provisionar los Azure App Services correspondientes para los ambientes de Dev, QA y Pro, asegurando su correcta configuración de acuerdo con las necesidades del proyecto.
+Aquí les dejo el video que le va a servir de muestra para hacer esta práctica despliegue con azure devops: Encuentros de clases virtuales-20250331_192237-Meeting Recording.mp4
 
-Realizar la publicación del proyecto en el App Service del entorno Dev como primera fase del proceso de despliegue.
-
-Cada miembro del equipo deberá generar un informe en formato PDF, en el cual documentará la configuración del App Service asignado, detallando tanto los parámetros técnicos como el módulo funcional del sistema que desarrolló.
+y video de despligue con github actions: Encuentro virtuales electiva 2 sección 2-20260415_183935-Meeting Recording
